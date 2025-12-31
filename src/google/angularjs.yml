@@ -1,0 +1,316 @@
+# Google AngularJS Style Guide
+# Source: https://google.github.io/styleguide/angularjs-google-style.html
+# Note: AngularJS (1.x) is in long-term support mode. For new projects, use Angular (2+).
+
+_meta:
+  name: google-angularjs
+  language: javascript
+  tags: [style, google, angularjs]
+  source: "https://google.github.io/styleguide/angularjs-google-style.html"
+
+naming:
+  reserve_dollar_for_angular:
+    enforcement: MUST_NOT
+    value: "Never prefix custom properties with $"
+    good: |
+      this.userName = 'John';
+      this.isActive = true;
+    bad: |
+      this.$userName = 'John';
+      this.$customProperty = value;
+
+  module_names:
+    enforcement: MUST
+    value: "Use descriptive, dot-separated names"
+    good: |
+      angular.module('myApp.users', []);
+      angular.module('myApp.common.filters', []);
+
+modules:
+  registration:
+    enforcement: SHOULD
+    value: "Use Closure's goog.module for dependency management"
+
+  module_references:
+    enforcement: MUST
+    value: "Reference modules by .name property"
+    good: |
+      angular.module('myApp', [
+        otherModule.name,
+        anotherModule.name,
+      ]);
+    bad: |
+      angular.module('myApp', [
+        'otherModule',
+        'anotherModule',
+      ]);
+
+controllers:
+  controller_as_syntax:
+    enforcement: MUST
+    value: "Always use 'controller as' pattern"
+    good: |
+      angular.module('myApp')
+        .controller('UserController', UserController);
+
+      function UserController(userService) {
+        this.users = [];
+        this.loadUsers = function() {
+          this.users = userService.getAll();
+        };
+      }
+
+  template_example:
+    enforcement: MUST
+    value: "Use controllerAs syntax in templates"
+    good: |
+      <div ng-controller="UserController as ctrl">
+        <ul>
+          <li ng-repeat="user in ctrl.users">
+            {{ user.name }}
+          </li>
+        </ul>
+        <button ng-click="ctrl.loadUsers()">Load</button>
+      </div>
+
+  class_based:
+    enforcement: SHOULD
+    value: "Use ES6 classes for controllers"
+    good: |
+      class UserController {
+        constructor(userService) {
+          /** @private {!UserService} */
+          this.userService_ = userService;
+
+          /** @export {!Array<!User>} */
+          this.users = [];
+        }
+
+        /** @export */
+        loadUsers() {
+          this.users = this.userService_.getAll();
+        }
+      }
+
+      // Dependency injection
+      UserController.$inject = ['UserService'];
+
+services:
+  use_module_service:
+    enforcement: MUST
+    value: "Use module.service for class-based services"
+    good: |
+      class UserService {
+        constructor($http) {
+          /** @private {!angular.$http} */
+          this.http_ = $http;
+        }
+
+        /**
+         * @return {!angular.$q.Promise<!Array<!User>>}
+         */
+        getAll() {
+          return this.http_.get('/api/users')
+            .then(response => response.data);
+        }
+
+        /**
+         * @param {string} id
+         * @return {!angular.$q.Promise<!User>}
+         */
+        getById(id) {
+          return this.http_.get(`/api/users/${id}`)
+            .then(response => response.data);
+        }
+      }
+
+      UserService.$inject = ['$http'];
+
+      angular.module('myApp')
+        .service('UserService', UserService);
+
+directives:
+  small_and_composable:
+    enforcement: SHOULD
+    value: "Create small, focused, composable directives"
+    good: |
+      /**
+       * @return {!angular.Directive}
+       */
+      function userCard() {
+        return {
+          restrict: 'E',
+          scope: {
+            user: '=',
+          },
+          templateUrl: 'components/user-card.html',
+          controller: UserCardController,
+          controllerAs: 'ctrl',
+          bindToController: true,
+        };
+      }
+
+      class UserCardController {
+        constructor() {
+          // user bound from scope
+        }
+
+        /** @export */
+        onSelect() {
+          // Handle selection
+        }
+      }
+
+      angular.module('myApp')
+        .directive('userCard', userCard);
+
+  dom_manipulation:
+    enforcement: MUST
+    value: "DOM manipulation only in directives"
+    good: |
+      function autoFocus($timeout) {
+        return {
+          restrict: 'A',
+          link: function(scope, element) {
+            $timeout(function() {
+              element[0].focus();
+            });
+          },
+        };
+      }
+
+      autoFocus.$inject = ['$timeout'];
+
+dependency_injection:
+  ng_inject_annotation:
+    enforcement: MUST
+    value: "Use @ngInject or $inject array to prevent minification issues"
+    good: |
+      /** @ngInject */
+      function UserController(userService, $log) {
+        this.userService = userService;
+        this.log = $log;
+      }
+
+      // Or explicit $inject
+      UserController.$inject = ['UserService', '$log'];
+
+templates:
+  controller_as_in_ng_controller:
+    enforcement: MUST
+    value: "Use controllerAs in ng-controller directives"
+    good: |
+      <div ng-controller="MainController as main">
+        <h1>{{ main.title }}</h1>
+
+        <div ng-controller="UserController as user">
+          <span>{{ user.name }}</span>
+          <!-- Clear reference to parent -->
+          <span>{{ main.appName }}</span>
+        </div>
+      </div>
+
+  one_time_bindings:
+    enforcement: SHOULD
+    value: "Use one-time bindings for static content"
+    good: |
+      <!-- One-time binding -->
+      <span>{{ ::user.createdAt }}</span>
+
+      <!-- Updates with changes -->
+      <span>{{ user.name }}</span>
+
+file_organization:
+  directory_structure:
+    enforcement: SHOULD
+    value: |
+      app/
+      ├── components/
+      │   ├── user-card/
+      │   │   ├── user-card.js
+      │   │   ├── user-card.html
+      │   │   └── user-card.css
+      │   └── nav-bar/
+      │       └── ...
+      ├── services/
+      │   ├── user-service.js
+      │   └── auth-service.js
+      ├── controllers/
+      │   ├── main-controller.js
+      │   └── user-controller.js
+      └── app.js
+
+  one_component_per_file:
+    enforcement: MUST
+    value: true
+
+testing:
+  jasmine_karma:
+    enforcement: SHOULD
+    value: "Use Jasmine and Karma for testing"
+    good: |
+      describe('UserService', function() {
+        let userService;
+        let $httpBackend;
+
+        beforeEach(angular.mock.module('myApp'));
+
+        beforeEach(angular.mock.inject(function(_UserService_, _$httpBackend_) {
+          userService = _UserService_;
+          $httpBackend = _$httpBackend_;
+        }));
+
+        afterEach(function() {
+          $httpBackend.verifyNoOutstandingExpectation();
+          $httpBackend.verifyNoOutstandingRequest();
+        });
+
+        it('should fetch users', function() {
+          const mockUsers = [{id: 1, name: 'John'}];
+          $httpBackend.expectGET('/api/users').respond(mockUsers);
+
+          let result;
+          userService.getAll().then(function(users) {
+            result = users;
+          });
+
+          $httpBackend.flush();
+          expect(result).toEqual(mockUsers);
+        });
+      });
+
+best_practices:
+  avoid_scope:
+    enforcement: MUST
+    value: "Use controller as pattern instead"
+    good: |
+      function NewController() {
+        this.name = 'John';
+      }
+    bad: |
+      function OldController($scope) {
+        $scope.name = 'John';
+      }
+
+  avoid_watch_when_possible:
+    enforcement: SHOULD
+    value: "Prefer ng-change over $watch"
+    good: |
+      <input ng-model="ctrl.value" ng-change="ctrl.onValueChange()">
+    bad: |
+      $scope.$watch('value', function(newVal) { ... });
+
+  resolve_in_routes:
+    enforcement: SHOULD
+    value: "Use resolve to pre-fetch data before controller loads"
+    good: |
+      $routeProvider.when('/users/:id', {
+        templateUrl: 'views/user-detail.html',
+        controller: 'UserDetailController',
+        controllerAs: 'ctrl',
+        resolve: {
+          user: function(UserService, $route) {
+            return UserService.getById($route.current.params.id);
+          },
+        },
+      });

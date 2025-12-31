@@ -1,0 +1,437 @@
+# Google Go Style Guide
+# Source: https://go.dev/doc/effective_go and https://google.github.io/styleguide/go/
+
+_meta:
+  name: google-go
+  language: go
+  tags: [style, google]
+  source: "https://google.github.io/styleguide/go/"
+
+naming:
+  package:
+    enforcement: MUST
+    value: "Short, concise, lowercase; no underscores or mixedCaps; avoid generic names"
+    good: |
+      package http
+      package json
+      package user
+    bad: |
+      package httpUtil
+      package json_parser
+      package common
+
+  variable:
+    enforcement: SHOULD
+    value: "Short names for short scopes, longer names for longer scopes; MixedCaps, not underscores"
+    good: |
+      for i := 0; i < len(items); i++ { ... }
+
+      var userRepository UserRepository
+      var connectionTimeout time.Duration
+    bad: |
+      var user_repository UserRepository
+      var connTimeout time.Duration  // abbreviation unclear
+
+  exported:
+    enforcement: MUST
+    value: "Exported names start with uppercase"
+    good: |
+      // Exported (public)
+      func ProcessData() {}
+      type UserService struct {}
+
+      // Unexported (private)
+      func processData() {}
+      type userService struct {}
+
+  interface:
+    enforcement: SHOULD
+    value: "Single-method interfaces use method name + 'er'"
+    good: |
+      type Reader interface {
+          Read(p []byte) (n int, err error)
+      }
+
+      type Stringer interface {
+          String() string
+      }
+
+      // Multi-method interfaces - descriptive noun
+      type ReadWriteCloser interface {
+          Read(p []byte) (n int, err error)
+          Write(p []byte) (n int, err error)
+          Close() error
+      }
+
+  getters_setters:
+    enforcement: MUST
+    value: "No 'Get' prefix for getters"
+    good: |
+      func (u *User) Name() string { return u.name }
+      func (u *User) SetName(name string) { u.name = name }
+    bad: |
+      func (u *User) GetName() string { return u.name }
+
+formatting:
+  use_gofmt:
+    enforcement: MUST
+    value: "Always format code with gofmt or goimports"
+  indentation:
+    enforcement: MUST
+    value: "Tabs for indentation; no trailing whitespace"
+
+  line_length:
+    enforcement: SHOULD
+    value: "No strict limit, but break long lines sensibly"
+    good: |
+      result, err := someVeryLongFunctionName(
+          firstArgument,
+          secondArgument,
+          thirdArgument,
+      )
+
+comments:
+  package:
+    enforcement: MUST
+    value: "Every package should have a package comment"
+    good: |
+      // Package http provides HTTP client and server implementations.
+      //
+      // The client follows redirects and supports cookies.
+      package http
+
+  doc:
+    enforcement: MUST
+    value: "Start with the name being documented"
+    good: |
+      // Request represents an HTTP request received by a server.
+      type Request struct { ... }
+
+      // ServeHTTP handles incoming HTTP requests.
+      func (h *Handler) ServeHTTP(w ResponseWriter, r *Request) { ... }
+
+  bad_code:
+    enforcement: SHOULD_NOT
+    value: "Don't comment bad code - rewrite it instead"
+
+control_structures:
+  if_statements:
+    enforcement: SHOULD
+    value: "No parentheses around condition; opening brace on same line; prefer early returns"
+    good: |
+      func process(data []byte) error {
+          if len(data) == 0 {
+              return errors.New("empty data")
+          }
+          // main logic here
+          return nil
+      }
+    bad: |
+      func process(data []byte) error {
+          if len(data) == 0 {
+              return errors.New("empty data")
+          } else {
+              // main logic here
+              return nil
+          }
+      }
+
+  for_loops:
+    enforcement: SHOULD
+    value: "Use appropriate for loop style for the situation"
+    good: |
+      // Standard loop
+      for i := 0; i < 10; i++ { ... }
+
+      // While-style
+      for condition { ... }
+
+      // Infinite loop
+      for { ... }
+
+      // Range
+      for i, v := range slice { ... }
+      for k, v := range map { ... }
+
+  switch:
+    enforcement: SHOULD
+    value: "No need for break (implicit); use fallthrough explicitly if needed"
+    good: |
+      switch value {
+      case 1:
+          handleOne()
+      case 2, 3:
+          handleTwoOrThree()
+      default:
+          handleDefault()
+      }
+
+      // Type switch
+      switch v := x.(type) {
+      case string:
+          fmt.Printf("string: %s", v)
+      case int:
+          fmt.Printf("int: %d", v)
+      }
+
+functions:
+  return_values:
+    enforcement: SHOULD
+    value: "Use named return values for documentation"
+    good: |
+      // Named returns document meaning
+      func split(sum int) (x, y int) {
+          x = sum * 4 / 9
+          y = sum - x
+          return
+      }
+
+      // Explicit returns for clarity
+      func divide(a, b float64) (float64, error) {
+          if b == 0 {
+              return 0, errors.New("division by zero")
+          }
+          return a / b, nil
+      }
+
+  defer:
+    enforcement: MUST
+    value: "Use defer for cleanup"
+    good: |
+      func readFile(filename string) ([]byte, error) {
+          f, err := os.Open(filename)
+          if err != nil {
+              return nil, err
+          }
+          defer f.Close()
+
+          return io.ReadAll(f)
+      }
+
+error_handling:
+  check_errors:
+    enforcement: MUST
+    value: "Always check returned errors"
+    good: |
+      result, err := doSomething()
+      if err != nil {
+          return fmt.Errorf("failed to do something: %w", err)
+      }
+    bad: |
+      result, _ := doSomething()
+
+  wrapping:
+    enforcement: SHOULD
+    value: "Use fmt.Errorf with %w for error wrapping"
+    good: |
+      if err := step1(); err != nil {
+          return fmt.Errorf("step1 failed: %w", err)
+      }
+
+  sentinel_errors:
+    enforcement: SHOULD
+    value: "Define package-level sentinel errors"
+    good: |
+      var (
+          ErrNotFound = errors.New("not found")
+          ErrInvalid  = errors.New("invalid")
+      )
+
+      // Usage
+      if errors.Is(err, ErrNotFound) { ... }
+
+  custom_errors:
+    enforcement: MAY
+    value: "Use custom error types for complex error information"
+    good: |
+      type ValidationError struct {
+          Field   string
+          Message string
+      }
+
+      func (e *ValidationError) Error() string {
+          return fmt.Sprintf("%s: %s", e.Field, e.Message)
+      }
+
+structs:
+  field_order:
+    enforcement: SHOULD
+    value: "Group related fields, put important ones first"
+
+  field_grouping:
+    enforcement: SHOULD
+    value: "Group fields logically with comments"
+    good: |
+      type User struct {
+          // Identity
+          ID        int64
+          Email     string
+          Username  string
+
+          // Timestamps
+          CreatedAt time.Time
+          UpdatedAt time.Time
+
+          // Internal
+          passwordHash []byte
+      }
+
+  literals:
+    enforcement: MUST
+    value: "Use field names in struct literals"
+    good: |
+      user := User{
+          ID:       1,
+          Email:    "user@example.com",
+          Username: "johndoe",
+      }
+    bad: |
+      user := User{1, "user@example.com", "johndoe", time.Now(), time.Now(), nil}
+
+  constructor:
+    enforcement: SHOULD
+    value: "Use NewXxx pattern for constructor functions"
+    good: |
+      func NewServer(addr string, opts ...Option) *Server {
+          s := &Server{
+              addr:    addr,
+              timeout: defaultTimeout,
+          }
+          for _, opt := range opts {
+              opt(s)
+          }
+          return s
+      }
+
+interfaces:
+  accept_return:
+    enforcement: SHOULD
+    value: "Accept interfaces, return structs"
+    good: |
+      // Accepts interface
+      func Process(r io.Reader) error { ... }
+
+      // Returns concrete type
+      func NewBuffer() *Buffer { ... }
+
+  small_interfaces:
+    enforcement: SHOULD
+    value: "Prefer small, focused interfaces"
+    good: |
+      // Small and focused
+      type Reader interface {
+          Read(p []byte) (n int, err error)
+      }
+
+      type Writer interface {
+          Write(p []byte) (n int, err error)
+      }
+
+      // Compose when needed
+      type ReadWriter interface {
+          Reader
+          Writer
+      }
+
+concurrency:
+  goroutines:
+    enforcement: SHOULD
+    value: "Use goroutines for concurrent work; always handle panics in goroutines"
+    good: |
+      go func() {
+          result := process(data)
+          resultChan <- result
+      }()
+
+      // Handle panics in goroutines
+      go func() {
+          defer func() {
+              if r := recover(); r != nil {
+                  log.Printf("recovered: %v", r)
+              }
+          }()
+          process(data)
+      }()
+
+  channels:
+    enforcement: SHOULD
+    value: "Use appropriate channel types for the situation"
+    good: |
+      // Buffered channel when producer/consumer rates differ
+      ch := make(chan int, 100)
+
+      // Unbuffered for synchronization
+      done := make(chan struct{})
+
+      // Close channels when done sending
+      close(ch)
+
+  context:
+    enforcement: MUST
+    value: "Use context for cancellation and timeouts"
+    good: |
+      func FetchData(ctx context.Context, url string) ([]byte, error) {
+          req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+          if err != nil {
+              return nil, err
+          }
+          // ...
+      }
+
+testing:
+  table_driven:
+    enforcement: SHOULD
+    value: "Use table-driven tests"
+    good: |
+      func TestAdd(t *testing.T) {
+          tests := []struct {
+              name     string
+              a, b     int
+              expected int
+          }{
+              {"positive", 1, 2, 3},
+              {"negative", -1, -2, -3},
+              {"zero", 0, 0, 0},
+          }
+
+          for _, tt := range tests {
+              t.Run(tt.name, func(t *testing.T) {
+                  result := Add(tt.a, tt.b)
+                  if result != tt.expected {
+                      t.Errorf("Add(%d, %d) = %d; want %d",
+                          tt.a, tt.b, result, tt.expected)
+                  }
+              })
+          }
+      }
+
+  helpers:
+    enforcement: SHOULD
+    value: "Use t.Helper() and t.Cleanup() in test helpers"
+    good: |
+      func setupTestDB(t *testing.T) *sql.DB {
+          t.Helper()
+          db, err := sql.Open("sqlite3", ":memory:")
+          if err != nil {
+              t.Fatalf("failed to open db: %v", err)
+          }
+          t.Cleanup(func() { db.Close() })
+          return db
+      }
+
+checklist:
+  items:
+    enforcement: SHOULD
+    value:
+      - "Package names are short, lowercase, no underscores"
+      - "Exported names start with uppercase"
+      - "Interface names end in '-er' for single methods"
+      - "No 'Get' prefix on getters"
+      - "Code formatted with gofmt"
+      - "All errors are checked"
+      - "Errors wrapped with context using %w"
+      - "defer used for cleanup"
+      - "Struct literals use field names"
+      - "Small, focused interfaces"
+      - "Context used for cancellation"
+      - "Table-driven tests"

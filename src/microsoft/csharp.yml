@@ -1,0 +1,471 @@
+# Microsoft C# Coding Conventions
+# Source: https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions
+
+_meta:
+  name: microsoft-csharp
+  language: csharp
+  tags: [style, microsoft]
+  source: "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions"
+
+naming:
+  class:
+    enforcement: MUST
+    value: PascalCase
+  interface:
+    enforcement: MUST
+    value: "IPascalCase (I prefix)"
+  method:
+    enforcement: MUST
+    value: PascalCase
+  property:
+    enforcement: MUST
+    value: PascalCase
+  event:
+    enforcement: MUST
+    value: PascalCase
+  namespace:
+    enforcement: MUST
+    value: PascalCase
+  constant:
+    enforcement: MUST
+    value: PascalCase
+  private_field:
+    enforcement: MUST
+    value: "_camelCase (underscore prefix)"
+  parameter:
+    enforcement: MUST
+    value: camelCase
+  local_variable:
+    enforcement: MUST
+    value: camelCase
+  type_parameter:
+    enforcement: MUST
+    value: "TPascalCase (T prefix)"
+
+  examples:
+    enforcement: SHOULD
+    good: |
+      public class UserService
+      {
+          private readonly ILogger _logger;
+          private int _retryCount;
+
+          public string UserName { get; set; }
+          public const int MaxRetries = 3;
+
+          public User GetUser(string userId)
+          {
+              var localUser = FindUser(userId);
+              return localUser;
+          }
+      }
+
+formatting:
+  indentation:
+    enforcement: MUST
+    value: "4 spaces, never tabs"
+
+  braces_allman:
+    enforcement: MUST
+    value: "Allman style - opening brace on new line"
+    good: |
+      if (condition)
+      {
+          DoSomething();
+      }
+      else
+      {
+          DoOtherThing();
+      }
+
+      public class MyClass
+      {
+          public void MyMethod()
+          {
+              // Implementation
+          }
+      }
+
+  max_line_length:
+    enforcement: SHOULD
+    value: 100
+
+  line_breaking:
+    enforcement: SHOULD
+    value: "Break long statements before operators"
+    good: |
+      var result = firstValue
+          + secondValue
+          + thirdValue;
+
+      var query = collection
+          .Where(x => x.IsActive)
+          .OrderBy(x => x.Name)
+          .Select(x => x.Id);
+
+  one_statement_per_line:
+    enforcement: MUST
+    good: |
+      int a = 1;
+      int b = 2;
+    bad: |
+      int a = 1; int b = 2;
+
+  blank_lines:
+    enforcement: SHOULD
+    value: "Use blank lines to separate logical groups of members"
+
+using_directives:
+  placement:
+    enforcement: MUST
+    value: "Outside namespace declarations"
+
+  file_scoped_namespaces:
+    enforcement: SHOULD
+    value: "Prefer file-scoped namespaces (C# 10+)"
+    good: |
+      using System;
+
+      namespace MyProject.Services;
+
+      public class UserService
+      {
+          // Entire file is in this namespace
+      }
+
+  ordering:
+    enforcement: SHOULD
+    value:
+      - "System namespaces"
+      - "Third-party namespaces"
+      - "Project namespaces"
+      - "Static usings (at end)"
+
+type_usage:
+  language_keywords:
+    enforcement: MUST
+    value: "Use language keywords instead of .NET types"
+    good: |
+      string name;
+      int count;
+      bool isValid;
+    bad: |
+      String name;
+      Int32 count;
+      Boolean isValid;
+
+  var_keyword:
+    enforcement: SHOULD
+    value: "Use var when type is obvious"
+    good: |
+      // Type is obvious
+      var message = "Hello";
+      var numbers = new List<int>();
+      var customer = new Customer();
+      var stream = File.OpenRead(path);
+
+      // In LINQ
+      var query = from c in customers
+                  where c.City == "Seattle"
+                  select c.Name;
+
+      // In for loops
+      for (var i = 0; i < 100; i++)
+      {
+          // ...
+      }
+    bad: |
+      // Type not obvious - use explicit type
+      var result = GetData();
+      var value = Calculate();
+
+      // Better
+      DataResult result = GetData();
+      decimal value = Calculate();
+
+collections:
+  collection_expressions:
+    enforcement: SHOULD
+    value: "Use collection expressions (C# 12+)"
+    good: |
+      int[] numbers = [1, 2, 3, 4, 5];
+      List<string> names = ["Alice", "Bob", "Carol"];
+
+      // Spread operator
+      int[] combined = [..firstArray, ..secondArray];
+
+  object_initializers:
+    enforcement: SHOULD
+    value: "Use object and collection initializers"
+    good: |
+      var person = new Person
+      {
+          FirstName = "John",
+          LastName = "Doe",
+          Age = 30
+      };
+
+      // Target-typed new
+      Person person = new()
+      {
+          FirstName = "John",
+          LastName = "Doe"
+      };
+
+strings:
+  interpolation:
+    enforcement: SHOULD
+    value: "Prefer string interpolation"
+    good: |
+      var message = $"Hello, {name}!";
+      var path = $"{directory}/{filename}";
+    bad: |
+      var message = "Hello, " + name + "!";
+      var message = string.Format("Hello, {0}!", name);
+
+  raw_string_literals:
+    enforcement: SHOULD
+    value: "Use raw string literals for multi-line content (C# 11+)"
+    good: |
+      var json = """
+          {
+              "name": "John",
+              "age": 30
+          }
+          """;
+
+      var sql = """
+          SELECT *
+          FROM Users
+          WHERE Id = @id
+          """;
+
+  stringbuilder_for_loops:
+    enforcement: MUST
+    value: "Use StringBuilder for string concatenation in loops"
+    good: |
+      var builder = new StringBuilder();
+      for (var i = 0; i < 1000; i++)
+      {
+          builder.Append(items[i]);
+      }
+      var result = builder.ToString();
+    bad: |
+      var result = "";
+      for (var i = 0; i < 1000; i++)
+      {
+          result += items[i];
+      }
+
+error_handling:
+  catch_specific:
+    enforcement: MUST
+    value: "Catch specific exceptions"
+    good: |
+      try
+      {
+          ProcessFile(path);
+      }
+      catch (FileNotFoundException ex)
+      {
+          _logger.LogWarning(ex, "File not found: {Path}", path);
+          return default;
+      }
+      catch (IOException ex)
+      {
+          _logger.LogError(ex, "IO error processing: {Path}", path);
+          throw;
+      }
+    bad: |
+      try
+      {
+          ProcessFile(path);
+      }
+      catch (Exception ex)
+      {
+          // Too broad
+      }
+
+  using_statement:
+    enforcement: MUST
+    value: "Use using declarations for disposable resources"
+    good: |
+      // Modern using declaration
+      using var stream = File.OpenRead(path);
+      using var reader = new StreamReader(stream);
+      var content = reader.ReadToEnd();
+
+      // Using block also good
+      using (var stream = File.OpenRead(path))
+      {
+          // Use stream
+      }
+
+  never_swallow:
+    enforcement: MUST_NOT
+    value: "Never swallow exceptions with empty catch blocks"
+    good: |
+      try
+      {
+          DoSomething();
+      }
+      catch (Exception ex)
+      {
+          _logger.LogError(ex, "Operation failed");
+          throw;
+      }
+    bad: |
+      try
+      {
+          DoSomething();
+      }
+      catch (Exception)
+      {
+          // Silent failure
+      }
+
+linq:
+  meaningful_names:
+    enforcement: SHOULD
+    value: "Use meaningful names for query variables"
+    good: |
+      var activeCustomers = customers
+          .Where(c => c.IsActive)
+          .OrderBy(c => c.Name);
+    bad: |
+      var q = customers.Where(c => c.IsActive);
+
+  filter_early:
+    enforcement: SHOULD
+    value: "Filter before ordering to improve performance"
+
+  method_vs_query:
+    enforcement: SHOULD
+    value: "Method syntax for simple queries, query syntax for joins"
+    good: |
+      // Method syntax - preferred for simple queries
+      var adults = people.Where(p => p.Age >= 18);
+
+      // Query syntax - useful for joins
+      var query = from order in orders
+                  join customer in customers on order.CustomerId equals customer.Id
+                  where order.Total > 100
+                  select new { customer.Name, order.Total };
+
+async_await:
+  naming:
+    enforcement: MUST
+    value: "Suffix async methods with Async"
+    good: |
+      public async Task<User> GetUserAsync(string id)
+      {
+          return await _repository.FindAsync(id);
+      }
+
+  avoid_blocking:
+    enforcement: MUST_NOT
+    value: "Use await, never block with .Result or .GetAwaiter().GetResult()"
+    good: |
+      var result = await GetDataAsync();
+    bad: |
+      var result = GetDataAsync().Result;
+      var result = GetDataAsync().GetAwaiter().GetResult();
+
+  configure_await:
+    enforcement: SHOULD
+    value: "Use ConfigureAwait(false) in library code"
+
+operators:
+  short_circuit:
+    enforcement: MUST
+    value: "Use && and || for short-circuit evaluation"
+    good: |
+      if (obj != null && obj.IsValid)
+      {
+          // Safe: obj.IsValid only evaluated if obj != null
+      }
+    bad: |
+      if (obj != null & obj.IsValid)  // Throws if obj is null
+      {
+      }
+
+  pattern_matching:
+    enforcement: SHOULD
+    value: "Use pattern matching for type checks and conditionals"
+    good: |
+      if (obj is string text)
+      {
+          Console.WriteLine(text.Length);
+      }
+
+      // Type patterns
+      if (shape is Circle { Radius: > 10 } circle)
+      {
+          // Large circle
+      }
+
+      // Switch expressions
+      var message = status switch
+      {
+          Status.Active => "Running",
+          Status.Paused => "On hold",
+          Status.Stopped => "Terminated",
+          _ => "Unknown"
+      };
+
+comments:
+  xml_documentation:
+    enforcement: MUST
+    value: "Use XML documentation for public APIs"
+    good: |
+      /// <summary>
+      /// Retrieves a user by their unique identifier.
+      /// </summary>
+      /// <param name="id">The unique identifier of the user.</param>
+      /// <returns>The user if found; otherwise, null.</returns>
+      /// <exception cref="ArgumentNullException">
+      /// Thrown when <paramref name="id"/> is null.
+      /// </exception>
+      public User? GetUser(string id)
+      {
+          // ...
+      }
+
+  implementation_comments:
+    enforcement: SHOULD
+    value: "Comments should explain why, not what"
+    good: |
+      // Cache expires after 5 minutes to balance freshness with performance.
+      _cache.Set(key, value, TimeSpan.FromMinutes(5));
+
+records_and_properties:
+  records_for_data:
+    enforcement: SHOULD
+    value: "Use records for immutable data objects"
+    good: |
+      // Immutable data
+      public record Person(string FirstName, string LastName);
+
+      // With additional members
+      public record Customer(string Name, string Email)
+      {
+          public string DisplayName => $"{Name} <{Email}>";
+      }
+
+  required_properties:
+    enforcement: SHOULD
+    value: "Use required modifier for mandatory properties"
+    good: |
+      public class Configuration
+      {
+          public required string ConnectionString { get; init; }
+          public required int MaxRetries { get; init; }
+          public int Timeout { get; init; } = 30;
+      }
+
+      // Usage
+      var config = new Configuration
+      {
+          ConnectionString = "...",
+          MaxRetries = 3
+      };

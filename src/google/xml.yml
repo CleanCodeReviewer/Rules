@@ -1,0 +1,247 @@
+# Google XML Document Format Style Guide
+# Source: https://google.github.io/styleguide/xmlstyle.html
+
+_meta:
+  name: google-xml
+  language: xml
+  tags: [style, google]
+  source: "https://google.github.io/styleguide/xmlstyle.html"
+
+naming:
+  convention:
+    enforcement: MUST
+    value: lowerCamelCase
+
+  elements_and_attributes:
+    enforcement: MUST
+    value: "All element and attribute names use lowerCamelCase"
+    good: |
+      <userProfile>
+        <firstName>John</firstName>
+        <lastName>Doe</lastName>
+        <emailAddress>john@example.com</emailAddress>
+      </userProfile>
+    bad: |
+      <UserProfile>
+        <first_name>John</first_name>
+        <last-name>Doe</last-name>
+      </UserProfile>
+
+  acronyms_as_words:
+    enforcement: MUST
+    value: "Treat acronyms as words"
+    good: |
+      <userId>123</userId>
+      <httpRequest>...</httpRequest>
+      <htmlContent>...</htmlContent>
+    bad: |
+      <userID>123</userID>
+      <HTTPRequest>...</HTTPRequest>
+
+  max_name_length:
+    enforcement: SHOULD
+    value: 25
+
+elements:
+  no_mixed_content:
+    enforcement: MUST
+    value: "Elements contain either nothing, character content only, or child elements only"
+    good: |
+      <!-- child elements only -->
+      <address>
+        <street>123 Main St</street>
+        <city>Springfield</city>
+      </address>
+
+      <!-- character content only -->
+      <name>John Doe</name>
+    bad: |
+      <!-- mixed content -->
+      <paragraph>
+        This is <emphasis>mixed</emphasis> content.
+      </paragraph>
+
+  avoid_wrapper_elements:
+    enforcement: SHOULD
+    value: "Don't wrap repeating elements unnecessarily"
+    good: |
+      <order>
+        <item>...</item>
+        <item>...</item>
+      </order>
+    bad: |
+      <order>
+        <items>
+          <item>...</item>
+          <item>...</item>
+        </items>
+      </order>
+
+attributes:
+  max_per_element:
+    enforcement: SHOULD
+    value: 10
+
+  no_line_breaks_in_values:
+    enforcement: MUST_NOT
+    value: "Do not include line breaks in attribute values"
+    good: |
+      <description>A short description</description>
+    bad: |
+      <item description="This is a
+      multi-line description" />
+
+  avoid_namespaces:
+    enforcement: SHOULD_NOT
+    value: "Unless from external formats"
+
+values:
+  numbers:
+    enforcement: MUST
+    value: "Base 10, standard notation"
+
+  booleans:
+    enforcement: SHOULD
+    value: "Prefer enumerations; if boolean needed, use only true/false"
+    good: |
+      <status>active</status>
+      <status>inactive</status>
+
+      <!-- If boolean necessary -->
+      <active>true</active>
+      <active>false</active>
+    bad: |
+      <active>yes</active>
+      <active>1</active>
+
+  dates:
+    enforcement: MUST
+    value: "RFC 3339 format, prefer UTC"
+    good: |
+      <createdAt>2024-01-15T14:30:00Z</createdAt>
+      <expiresAt>2024-12-31T23:59:59+00:00</expiresAt>
+
+  avoid_embedded_syntax:
+    enforcement: SHOULD_NOT
+    value: "Don't embed other syntaxes in values"
+    bad: |
+      <query>SELECT * FROM users WHERE id = 123</query>
+      <condition>x > 0 && y < 100</condition>
+
+formatting:
+  encoding:
+    enforcement: MUST
+    value: "UTF-8 strongly recommended"
+
+  xml_declaration:
+    enforcement: MUST
+    value: "Include XML declaration"
+    good: |
+      <?xml version="1.0" encoding="UTF-8"?>
+
+  indentation:
+    enforcement: MUST
+    value: "2 spaces for child elements"
+
+  indentation_example:
+    enforcement: MUST
+    value: "Indent child elements with 2 spaces"
+    good: |
+      <root>
+        <parent>
+          <child>value</child>
+        </parent>
+      </root>
+
+  whitespace:
+    enforcement: SHOULD_NOT
+    value: "Avoid redundant whitespace in tags"
+    good: |
+      <element attr="value">content</element>
+    bad: |
+      <element  attr="value" >content</element>
+
+  long_tags:
+    enforcement: SHOULD
+    value: "Break long tags at attribute boundaries"
+    good: |
+      <!-- Short -->
+      <element attr1="value1" attr2="value2" />
+
+      <!-- Long - one attribute per line -->
+      <element
+        attr1="value1"
+        attr2="value2"
+        attr3="value3" />
+
+comments:
+  not_for_data:
+    enforcement: MUST_NOT
+    value: "Comments should never carry meaningful data"
+    good: |
+      <!-- Configuration for production environment -->
+      <config>...</config>
+    bad: |
+      <!-- deprecated: oldValue -->
+      <setting>newValue</setting>
+
+  placement:
+    enforcement: SHOULD
+    value: "In prolog or elements with children (not in character content)"
+
+  example:
+    enforcement: SHOULD
+    value: "Place comments in appropriate locations"
+    good: |
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!-- Document description -->
+      <root>
+        <!-- Section description -->
+        <section>
+          <item>value</item>
+        </section>
+      </root>
+
+namespaces:
+  default:
+    enforcement: SHOULD
+    value: "Use default namespace for primary elements"
+    good: |
+      <document xmlns="http://example.com/schema">
+        <element>value</element>
+      </document>
+
+  prefixed:
+    enforcement: MAY
+    value: "Use prefixed namespaces when mixing schemas"
+    good: |
+      <root xmlns:ex="http://example.com/schema">
+        <ex:element>value</ex:element>
+      </root>
+
+schema:
+  preferred:
+    enforcement: SHOULD
+    value: "RELAX NG compact syntax"
+
+  style:
+    enforcement: SHOULD
+    value: "Salami slice style - one rule per element"
+
+best_practices:
+  design_for_extensibility:
+    enforcement: SHOULD
+    value: "Design documents to allow future extensions"
+    good: |
+      <user version="1.0">
+        <name>John</name>
+        <!-- New fields can be added -->
+      </user>
+
+  be_consistent:
+    enforcement: MUST
+    value: "Maintain consistent style throughout the document"
+
+  validate:
+    enforcement: SHOULD
+    value: "Use schemas to validate documents"

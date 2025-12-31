@@ -1,0 +1,512 @@
+# Uber Go Style Guide
+# Source: https://github.com/uber-go/guide/blob/master/style.md
+
+_meta:
+  name: uber-go
+  language: go
+  tags: [style, uber]
+  source: "https://github.com/uber-go/guide/blob/master/style.md"
+
+naming:
+  package:
+    enforcement: MUST
+    value: lowercase
+  exported:
+    enforcement: MUST
+    value: MixedCaps
+  unexported:
+    enforcement: MUST
+    value: mixedCaps
+  constant:
+    enforcement: MUST
+    value: MixedCaps
+  unexported_global:
+    enforcement: SHOULD
+    value: "_mixedCaps (prefix with underscore)"
+  error_var:
+    enforcement: MUST
+    value: "ErrXxx / errXxx"
+  error_type:
+    enforcement: MUST
+    value: "XxxError suffix"
+
+  package_names:
+    enforcement: MUST
+    value: "Use lowercase, short package names without underscores"
+    good: |
+      package user
+      package httputil
+      package strconv
+    bad: |
+      package userService     // No capitals
+      package http_util       // No underscores
+      package util            // Too generic
+      package common          // Uninformative
+
+  unexported_globals:
+    enforcement: SHOULD
+    value: "Prefix unexported package-level vars with underscore"
+    good: |
+      var (
+          _defaultTimeout = 30 * time.Second
+          _maxRetries     = 3
+      )
+
+      // Exception: error variables use err prefix
+      var (
+          errNotFound = errors.New("not found")
+      )
+
+imports:
+  organization:
+    enforcement: MUST
+    value: "Two groups separated by blank line: stdlib, then external"
+    good: |
+      import (
+          // Standard library
+          "context"
+          "fmt"
+          "time"
+
+          // External packages
+          "github.com/uber-go/zap"
+          "go.uber.org/atomic"
+      )
+
+  aliasing:
+    enforcement: SHOULD_NOT
+    value: "Only alias imports when necessary"
+    good: |
+      import (
+          "net/http"
+
+          client "example.com/client-go"  // Package name doesn't match path
+      )
+    bad: |
+      import (
+          nettrace "runtime/trace"  // Already clear
+      )
+
+error_handling:
+  error_types:
+    enforcement: SHOULD
+    value: "Use errors.New for static errors, fmt.Errorf or custom types for dynamic"
+    good: |
+      // Static error - use errors.New
+      var ErrNotFound = errors.New("user not found")
+
+      // Dynamic error - use fmt.Errorf or custom type
+      func Open(file string) error {
+          return fmt.Errorf("file %q not found", file)
+      }
+
+      // Custom error type for matching
+      type NotFoundError struct {
+          Resource string
+      }
+
+      func (e *NotFoundError) Error() string {
+          return fmt.Sprintf("%s not found", e.Resource)
+      }
+
+  error_wrapping:
+    enforcement: SHOULD
+    value: "Add context with %w, keep messages succinct"
+    good: |
+      if err := doSomething(); err != nil {
+          return fmt.Errorf("do something: %w", err)
+      }
+
+      // Keep context succinct - no "failed to"
+      return fmt.Errorf("open file: %w", err)
+    bad: |
+      return fmt.Errorf("failed to open file: %w", err)
+
+  handle_once:
+    enforcement: MUST
+    value: "Handle errors once - don't log AND return"
+    good: |
+      // Wrap and return
+      if err != nil {
+          return fmt.Errorf("operation: %w", err)
+      }
+
+      // Or log and degrade gracefully
+      if err := emitMetrics(); err != nil {
+          log.Printf("emit metrics: %v", err)
+          // Continue without metrics
+      }
+    bad: |
+      if err != nil {
+          log.Printf("failed: %v", err)
+          return err  // Caller may also log
+      }
+
+interfaces:
+  pass_by_value:
+    enforcement: MUST
+    value: "Pass interfaces by value, not pointer"
+    good: |
+      func Process(r io.Reader) error { ... }
+    bad: |
+      func Process(r *io.Reader) error { ... }
+
+  verify_compliance:
+    enforcement: SHOULD
+    value: "Use compile-time checks to verify interface compliance"
+    good: |
+      type Handler struct{}
+
+      // Compile-time check
+      var _ http.Handler = (*Handler)(nil)
+
+      func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+          // ...
+      }
+
+slices_and_maps:
+  copy_at_boundaries:
+    enforcement: SHOULD
+    value: "Copy slices and maps at API boundaries"
+    good: |
+      // Receiving - make a copy
+      func (d *Driver) SetTrips(trips []Trip) {
+          d.trips = make([]Trip, len(trips))
+          copy(d.trips, trips)
+      }
+
+      // Returning - make a copy
+      func (s *Stats) Snapshot() map[string]int {
+          s.mu.Lock()
+          defer s.mu.Unlock()
+
+          result := make(map[string]int, len(s.counters))
+          for k, v := range s.counters {
+              result[k] = v
+          }
+          return result
+      }
+
+  nil_slices:
+    enforcement: SHOULD
+    value: "nil slice is valid - len/cap return 0, range does 0 iterations, append works"
+
+  preallocate:
+    enforcement: SHOULD
+    value: "Pre-allocate capacity when size is known"
+    good: |
+      data := make([]int, 0, size)
+      for i := 0; i < size; i++ {
+          data = append(data, i)
+      }
+    bad: |
+      data := make([]int, 0)
+      for i := 0; i < size; i++ {
+          data = append(data, i)
+      }
+
+defer:
+  use_for_cleanup:
+    enforcement: SHOULD
+    value: "Use defer for cleanup operations"
+    good: |
+      p.mu.Lock()
+      defer p.mu.Unlock()
+
+      // Even with multiple returns
+      if condition {
+          return earlyResult
+      }
+      return normalResult
+
+  ordering:
+    enforcement: MUST
+    value: "Defers run LIFO (last in, first out)"
+
+channels:
+  size:
+    enforcement: SHOULD
+    value: "Channel size should be one or none"
+    good: |
+      // Unbuffered (synchronous)
+      c := make(chan int)
+
+      // Buffer of 1 (async but bounded)
+      c := make(chan int, 1)
+    bad: |
+      c := make(chan int, 64)  // Why 64?
+
+enums:
+  start_at_one:
+    enforcement: SHOULD
+    value: "Start enums at one so zero value is invalid/unknown"
+    good: |
+      type Status int
+
+      const (
+          StatusUnknown Status = iota
+          StatusActive
+          StatusInactive
+      )
+
+      // Or explicitly start at 1
+      const (
+          StatusActive Status = iota + 1
+          StatusInactive
+      )
+
+goroutines:
+  never_fire_and_forget:
+    enforcement: MUST
+    value: "Never start goroutines without lifecycle control"
+    good: |
+      stop := make(chan struct{})
+      done := make(chan struct{})
+      go func() {
+          defer close(done)
+          ticker := time.NewTicker(delay)
+          defer ticker.Stop()
+          for {
+              select {
+              case <-ticker.C:
+                  process()
+              case <-stop:
+                  return
+              }
+          }
+      }()
+
+      // Cleanup
+      close(stop)
+      <-done
+    bad: |
+      go func() {
+          for {
+              process()
+              time.Sleep(delay)
+          }
+      }()
+
+  no_goroutines_in_init:
+    enforcement: MUST_NOT
+    value: "Don't spawn goroutines in init()"
+    good: |
+      type Worker struct {
+          stop chan struct{}
+          done chan struct{}
+      }
+
+      func NewWorker() *Worker {
+          w := &Worker{
+              stop: make(chan struct{}),
+              done: make(chan struct{}),
+          }
+          go w.run()
+          return w
+      }
+
+      func (w *Worker) Shutdown() {
+          close(w.stop)
+          <-w.done
+      }
+    bad: |
+      func init() {
+          go doWork()
+      }
+
+mutexes:
+  zero_value_valid:
+    enforcement: SHOULD
+    value: "Zero-value mutex is valid, no initialization needed"
+
+  dont_embed:
+    enforcement: SHOULD_NOT
+    value: "Don't embed mutexes - use private fields"
+    good: |
+      type SMap struct {
+          mu   sync.Mutex
+          data map[string]string
+      }
+    bad: |
+      type SMap struct {
+          sync.Mutex  // Exposes Lock/Unlock
+          data map[string]string
+      }
+
+panics:
+  avoid_in_production:
+    enforcement: MUST_NOT
+    value: "Avoid panics in production code - return errors instead"
+    good: |
+      func run(args []string) error {
+          if len(args) == 0 {
+              return errors.New("missing argument")
+          }
+          return nil
+      }
+    bad: |
+      func run(args []string) {
+          if len(args) == 0 {
+              panic("missing argument")
+          }
+      }
+
+  use_t_fatal_in_tests:
+    enforcement: SHOULD
+    value: "Use t.Fatal in tests instead of panic"
+    good: |
+      if err != nil {
+          t.Fatal("setup failed:", err)
+      }
+    bad: |
+      if err != nil {
+          panic("setup failed")
+      }
+
+structs:
+  use_field_names:
+    enforcement: MUST
+    value: "Use field names in struct literals"
+    good: |
+      user := User{
+          Name:  "Alice",
+          Email: "alice@example.com",
+          Age:   30,
+      }
+    bad: |
+      user := User{"Alice", "alice@example.com", 30}
+
+  omit_zero_values:
+    enforcement: SHOULD
+    value: "Omit zero values in struct literals"
+
+  use_var_for_zero:
+    enforcement: SHOULD
+    value: "Use var for zero-value structs"
+    good: |
+      var user User
+    bad: |
+      user := User{}
+
+  field_tags:
+    enforcement: SHOULD
+    value: "Always use field tags for marshaling"
+    good: |
+      type Stock struct {
+          Price int    `json:"price"`
+          Name  string `json:"name"`
+      }
+    bad: |
+      type Stock struct {
+          Price int
+          Name  string  // Relies on field name
+      }
+
+code_style:
+  max_line_length:
+    enforcement: SHOULD
+    value: 99
+
+  reduce_nesting:
+    enforcement: SHOULD
+    value: "Reduce nesting with early returns and continues"
+    good: |
+      for _, v := range data {
+          if v.F1 != 1 {
+              log.Printf("Invalid v: %v", v)
+              continue
+          }
+
+          v = process(v)
+          if err := v.Call(); err != nil {
+              return err
+          }
+          v.Send()
+      }
+    bad: |
+      for _, v := range data {
+          if v.F1 == 1 {
+              v = process(v)
+              if err := v.Call(); err == nil {
+                  v.Send()
+              } else {
+                  return err
+              }
+          } else {
+              log.Printf("Invalid v: %v", v)
+          }
+      }
+
+  avoid_unnecessary_else:
+    enforcement: SHOULD
+    value: "Avoid else when if ends with return or continue"
+    good: |
+      a := 10
+      if b {
+          a = 100
+      }
+    bad: |
+      var a int
+      if b {
+          a = 100
+      } else {
+          a = 10
+      }
+
+  function_ordering:
+    enforcement: SHOULD
+    value:
+      - "Type definition"
+      - "Constructor (NewXxx)"
+      - "Methods (grouped by receiver)"
+      - "Utility functions (at end)"
+
+performance:
+  strconv_over_fmt:
+    enforcement: SHOULD
+    value: "Use strconv instead of fmt for conversions"
+    good: |
+      s := strconv.Itoa(n)
+    bad: |
+      s := fmt.Sprint(n)
+
+  avoid_repeated_conversions:
+    enforcement: SHOULD
+    value: "Convert once, not in loops"
+    good: |
+      data := []byte("Hello world")
+      for i := 0; i < n; i++ {
+          w.Write(data)
+      }
+    bad: |
+      for i := 0; i < n; i++ {
+          w.Write([]byte("Hello world"))
+      }
+
+main:
+  single_exit_point:
+    enforcement: SHOULD
+    value: "Have a single exit point in main"
+    good: |
+      func main() {
+          if err := run(); err != nil {
+              fmt.Fprintln(os.Stderr, err)
+              os.Exit(1)
+          }
+      }
+
+      func run() error {
+          // Business logic here
+          return nil
+      }
+    bad: |
+      func main() {
+          if len(os.Args) < 2 {
+              log.Fatal("missing arg")
+          }
+          f, err := os.Open(os.Args[1])
+          if err != nil {
+              log.Fatal(err)  // Multiple exit points
+          }
+          // ...
+      }

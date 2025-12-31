@@ -1,0 +1,151 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+    paths:
+      - 'src/**/*.yml'
+      - 'src/**/*.yaml'
+
+jobs:
+  validate:
+    name: Validate Rules
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install pyyaml
+
+      - name: Validate YAML syntax
+        run: |
+          echo "Validating YAML syntax..."
+          python - <<'EOF'
+          import yaml
+          import sys
+          from pathlib import Path
+
+          errors = []
+          for path in Path('src').rglob('*.yml'):
+              try:
+                  with open(path) as f:
+                      yaml.safe_load(f)
+                  print(f"✓ {path}")
+              except yaml.YAMLError as e:
+                  errors.append(f"✗ {path}: {e}")
+                  print(f"✗ {path}: {e}")
+
+          if errors:
+              print(f"\n{len(errors)} file(s) with YAML syntax errors")
+              sys.exit(1)
+          print("\nAll YAML files are valid")
+          EOF
+
+      - name: Validate rule schema
+        run: |
+          echo "Validating rule schema..."
+          python - <<'EOF'
+          import yaml
+          import sys
+          from pathlib import Path
+
+          VALID_ENFORCEMENT = {'MUST', 'SHOULD', 'MAY', 'SHOULD_NOT', 'MUST_NOT'}
+          errors = []
+
+          def validate_rule(path, key, rule, parent_key=""):
+              """Validate a single rule has proper enforcement and value fields."""
+              full_key = f"{parent_key}.{key}" if parent_key else key
+
+              # Skip _meta and non-dict values
+              if key == '_meta' or not isinstance(rule, dict):
+                  return
+
+              # Check if this is a rule (has enforcement) or a category (has nested rules)
+              if 'enforcement' in rule:
+                  # This is a rule - validate it
+                  enforcement = rule.get('enforcement')
+                  if enforcement not in VALID_ENFORCEMENT:
+                      errors.append(f"{path}: {full_key}.enforcement = '{enforcement}' (expected one of {VALID_ENFORCEMENT})")
+
+                  if 'value' not in rule:
+                      errors.append(f"{path}: {full_key} missing 'value' field")
+              else:
+                  # This might be a category - check nested items
+                  for sub_key, sub_rule in rule.items():
+                      if isinstance(sub_rule, dict):
+                          validate_rule(path, sub_key, sub_rule, full_key)
+
+          for path in Path('src').rglob('*.yml'):
+              try:
+                  with open(path) as f:
+                      data = yaml.safe_load(f)
+
+                  if not isinstance(data, dict):
+                      errors.append(f"{path}: Root must be a dictionary")
+                      continue
+
+                  # Validate each top-level section
+                  for key, section in data.items():
+                      if key == '_meta':
+                          continue
+                      if isinstance(section, dict):
+                          for rule_key, rule in section.items():
+                              validate_rule(path, rule_key, rule, key)
+
+                  print(f"✓ {path}")
+              except Exception as e:
+                  errors.append(f"{path}: {e}")
+
+          if errors:
+              print("\nSchema validation errors:")
+              for error in errors:
+                  print(f"  - {error}")
+              print(f"\n{len(errors)} error(s) found")
+              sys.exit(1)
+
+          print("\nAll rules have valid schema")
+          EOF
+
+      - name: Check for required _meta fields
+        run: |
+          echo "Checking _meta fields..."
+          python - <<'EOF'
+          import yaml
+          import sys
+          from pathlib import Path
+
+          warnings = []
+
+          for path in Path('src').rglob('*.yml'):
+              with open(path) as f:
+                  data = yaml.safe_load(f)
+
+              if not isinstance(data, dict):
+                  continue
+
+              meta = data.get('_meta', {})
+
+              if not meta.get('name'):
+                  warnings.append(f"{path}: missing _meta.name")
+
+              # source is recommended but not required
+              if not meta.get('source'):
+                  warnings.append(f"{path}: missing _meta.source (recommended)")
+
+          if warnings:
+              print("Warnings:")
+              for warning in warnings:
+                  print(f"  - {warning}")
+
+          print("\n_meta check complete")
+          EOF

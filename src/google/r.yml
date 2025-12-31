@@ -1,0 +1,220 @@
+# Google R Style Guide
+# Source: https://google.github.io/styleguide/Rguide.html
+
+_meta:
+  name: google-r
+  language: r
+  tags: [style, google]
+  source: "https://google.github.io/styleguide/Rguide.html"
+
+naming:
+  function:
+    enforcement: MUST
+    value: BigCamelCase
+
+  private_function:
+    enforcement: MUST
+    value: ".BigCamelCase (prefix with dot)"
+
+  variable:
+    enforcement: SHOULD
+    value: "lowercase or snake_case"
+
+  functions:
+    enforcement: MUST
+    value: "Use BigCamelCase to distinguish from variables"
+    good: |
+      DoNothing <- function() {
+        return(invisible(NULL))
+      }
+
+      CalculateAverage <- function(values) {
+        return(mean(values))
+      }
+
+      # Private function (prefix with dot)
+      .ValidateInput <- function(x) {
+        stopifnot(is.numeric(x))
+      }
+
+  variables:
+    enforcement: SHOULD_NOT
+    value: "Avoid dot.case (conflicts with S3 methods)"
+    good: |
+      avg_value <- mean(data)
+      user_count <- length(users)
+    bad: |
+      avg.value <- mean(data)  # Looks like S3 method
+
+syntax:
+  assignment:
+    enforcement: MUST
+    value: "Use <- for assignment, not ="
+    good: |
+      x <- 5
+      data <- read.csv("file.csv")
+    bad: |
+      x = 5
+
+  right_hand_assignment:
+    enforcement: MUST_NOT
+    value: "Never use"
+
+  explicit_returns:
+    enforcement: MUST
+    value: "Always use return()"
+    good: |
+      AddValues <- function(x, y) {
+        return(x + y)
+      }
+    bad: |
+      AddValues <- function(x, y) {
+        x + y
+      }
+
+namespace:
+  qualify_external_functions:
+    enforcement: MUST
+    value: "Explicitly qualify external functions"
+    good: |
+      result <- purrr::map(data, process)
+      clean_data <- dplyr::filter(data, value > 0)
+      json <- jsonlite::toJSON(data)
+    bad: |
+      result <- map(data, process)
+
+  exceptions:
+    enforcement: MAY
+    value:
+      - "Infix functions: %>%, %in%"
+      - "rlang pronouns: .data, .env"
+      - "Default packages: base, stats, utils, graphics, grDevices, datasets, methods"
+
+functions:
+  definition:
+    enforcement: SHOULD
+    value: "Structure functions with validation and clear return"
+    good: |
+      ProcessData <- function(input, threshold = 0.5, verbose = FALSE) {
+        # Validate input
+        stopifnot(is.data.frame(input))
+
+        # Process
+        result <- input[input$value > threshold, ]
+
+        if (verbose) {
+          message("Processed ", nrow(result), " rows")
+        }
+
+        return(result)
+      }
+
+  documentation:
+    enforcement: MUST
+    value: "Use roxygen2 comments"
+    good: |
+      #' Calculate the mean of a numeric vector.
+      #'
+      #' @param x A numeric vector.
+      #' @param na.rm Whether to remove NA values.
+      #' @return The arithmetic mean.
+      #' @export
+      CalculateMean <- function(x, na.rm = FALSE) {
+        return(mean(x, na.rm = na.rm))
+      }
+
+spacing:
+  around_operators:
+    enforcement: MUST
+    value: "Use spaces around operators"
+    good: |
+      x <- 5
+      y <- x + 10
+      z <- x * y / 2
+    bad: |
+      x<-5
+      y<-x+10
+
+  commas:
+    enforcement: MUST
+    value: "Space after, not before"
+    good: |
+      process(x, y, z)
+      data[1, 2]
+    bad: |
+      process(x,y,z)
+      process(x ,y ,z)
+
+  parentheses:
+    enforcement: MUST_NOT
+    value: "No space before function calls"
+    good: |
+      mean(x)
+      sum(values)
+    bad: |
+      mean (x)
+
+braces:
+  enforcement: MUST
+  value: "Opening brace on same line, closing brace on own line"
+  good: |
+    if (condition) {
+      do_something()
+    } else {
+      do_other()
+    }
+
+    ProcessData <- function(x) {
+      if (is.null(x)) {
+        return(NULL)
+      }
+      return(process(x))
+    }
+
+best_practices:
+  avoid_attach:
+    enforcement: MUST_NOT
+    value: "Never use attach()"
+    bad: |
+      attach(data)
+      mean(value)
+      detach(data)
+    good: |
+      mean(data$value)
+
+      # Or with dplyr
+      data %>%
+        dplyr::summarize(avg = mean(value))
+
+  use_vectorization:
+    enforcement: SHOULD
+    value: "Prefer vectorized operations over loops"
+    good: |
+      result <- sqrt(values)
+    bad: |
+      result <- numeric(length(values))
+      for (i in seq_along(values)) {
+        result[i] <- sqrt(values[i])
+      }
+
+  apply_functions:
+    enforcement: SHOULD
+    value: "Prefer vapply for type safety"
+    good: |
+      lapply(data_list, process)
+      sapply(values, sqrt)
+      vapply(values, sqrt, numeric(1))
+
+package_documentation:
+  enforcement: MUST
+  value: "Every package needs a package documentation file"
+  good: |
+    # R/mypackage-package.R
+
+    #' mypackage: A Brief Description
+    #'
+    #' A longer description of what the package does.
+    #'
+    #' @docType package
+    #' @name mypackage
+    NULL

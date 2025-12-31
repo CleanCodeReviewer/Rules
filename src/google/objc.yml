@@ -1,0 +1,320 @@
+# Google Objective-C Style Guide
+# Source: https://google.github.io/styleguide/objcguide.html
+
+_meta:
+  name: google-objc
+  language: objectivec
+  tags: [style, google]
+  source: "https://google.github.io/styleguide/objcguide.html"
+
+naming:
+  class:
+    enforcement: MUST
+    value: "UpperCamelCase with 3+ character prefix"
+  method:
+    enforcement: MUST
+    value: lowerCamelCase
+  variable_local:
+    enforcement: MUST
+    value: lowerCamelCase
+  variable_instance:
+    enforcement: MUST
+    value: _lowerCamelCase
+  variable_global:
+    enforcement: MUST
+    value: gLowerCamelCase
+  constant:
+    enforcement: MUST
+    value: "kPrefix + MixedCase (e.g., kGTMErrorDomain)"
+  property:
+    enforcement: MUST
+    value: lowerCamelCase
+
+  prefixes:
+    enforcement: MUST
+    value: "Use minimum 3 characters for shared code; Apple reserves 2-letter prefixes"
+    good: |
+      @interface GTMUserService : NSObject
+    bad: |
+      // Too short
+      @interface GTUserService : NSObject
+
+  acronyms:
+    enforcement: SHOULD
+    value: "Use all capitals for acronyms within names"
+    good: |
+      NSURL *imageURL;
+      NSString *userID;
+
+formatting:
+  max_line_length:
+    enforcement: SHOULD
+    value: 100
+  indentation:
+    enforcement: MUST
+    value: "2 spaces, never tabs"
+
+  interface_example:
+    enforcement: SHOULD
+    value: "Follow standard interface formatting"
+    good: |
+      @interface MyClass : NSObject
+
+      @property(nonatomic, copy) NSString *name;
+
+      - (void)doSomething;
+
+      @end
+
+  method_declarations:
+    enforcement: SHOULD
+    value: "Keep short methods on one line; align colons for long methods"
+    good: |
+      // Short - one line
+      - (void)doSomething {
+        // Implementation
+      }
+
+      // Long - align colons
+      - (void)doSomethingWithFoo:(GTMFoo *)theFoo
+                            rect:(NSRect)theRect
+                        interval:(float)theInterval {
+        // Implementation
+      }
+
+  method_invocations:
+    enforcement: SHOULD
+    value: "Keep short invocations on one line; align colons for long invocations"
+    good: |
+      // Short - one line
+      [myObject doFooWith:arg1 name:arg2];
+
+      // Long - align colons
+      [myObject doFooWith:arg1
+                     name:arg2
+                    error:arg3];
+
+  blocks:
+    enforcement: SHOULD
+    value: "Keep short blocks inline; use multiple lines for longer blocks"
+    good: |
+      // Short block
+      [operation setCompletionBlock:^{ [self onComplete]; }];
+
+      // Long block
+      [operation setCompletionBlock:^{
+        [self.delegate
+            operationDidComplete:self
+                       withError:error];
+      }];
+
+interface_organization:
+  order:
+    enforcement: SHOULD
+    value:
+      - "Properties"
+      - "Class methods (starting with convenience constructors)"
+      - "Initializers"
+      - "Instance methods"
+
+  example:
+    enforcement: SHOULD
+    value: "Follow standard interface organization"
+    good: |
+      @interface GTMUser : NSObject
+
+      @property(nonatomic, copy) NSString *name;
+      @property(nonatomic, assign) NSInteger age;
+
+      + (instancetype)userWithName:(NSString *)name;
+
+      - (instancetype)initWithName:(NSString *)name;
+
+      - (void)updateProfile;
+
+      @end
+
+properties:
+  attributes_order:
+    enforcement: SHOULD
+    value: "Order: atomicity, access, memory management"
+    good: |
+      @property(nonatomic, readonly, copy) NSString *name;
+      @property(nonatomic, readwrite, strong) NSArray<Item *> *items;
+
+  accessors:
+    enforcement: MUST
+    value: "No 'get' prefix for getters; use 'is' prefix for booleans"
+    good: |
+      - (id)delegate;
+      - (BOOL)isGlorious;
+    bad: |
+      - (id)getDelegate;
+      - (BOOL)glorious;
+
+  copy_for_mutable_types:
+    enforcement: SHOULD
+    value: "Use copy for properties that accept mutable types"
+    good: |
+      @property(nonatomic, copy) NSString *name;
+      @property(nonatomic, copy) NSArray *items;
+
+initialization:
+  designated_initializer:
+    enforcement: MUST
+    value: "Follow the designated initializer pattern"
+    good: |
+      - (instancetype)initWithName:(NSString *)name
+                               age:(NSInteger)age {
+        self = [super init];
+        if (self) {
+          _name = [name copy];
+          _age = age;
+        }
+        return self;
+      }
+
+  no_reinit_to_nil:
+    enforcement: SHOULD_NOT
+    value: "Don't re-initialize instance variables to nil under ARC"
+    bad: |
+      - (instancetype)init {
+        self = [super init];
+        if (self) {
+          _name = nil;  // Don't do this
+        }
+        return self;
+      }
+
+  avoid_messaging_self_in_init:
+    enforcement: SHOULD
+    value: "Use direct ivar access in init/dealloc, not property accessors"
+    good: |
+      - (instancetype)initWithName:(NSString *)name {
+        self = [super init];
+        if (self) {
+          _name = [name copy];  // Direct ivar
+        }
+        return self;
+      }
+    bad: |
+      - (instancetype)initWithName:(NSString *)name {
+        self = [super init];
+        if (self) {
+          self.name = name;  // Avoid in init
+        }
+        return self;
+      }
+
+nullability:
+  enforcement: SHOULD
+  value: "Use nullability annotations consistently"
+  good: |
+    NS_ASSUME_NONNULL_BEGIN
+
+    @interface GTMUser : NSObject
+
+    @property(nonatomic, copy) NSString *name;
+    @property(nonatomic, copy, nullable) NSString *nickname;
+
+    - (instancetype)initWithName:(NSString *)name;
+    - (nullable GTMUser *)findUserWithID:(NSString *)userID;
+
+    @end
+
+    NS_ASSUME_NONNULL_END
+
+generics:
+  enforcement: SHOULD
+  value: "Use lightweight generics for collection types"
+  good: |
+    NSArray<NSString *> *names;
+    NSDictionary<NSString *, NSNumber *> *scores;
+  bad: |
+    NSArray *names;
+    NSDictionary *scores;
+
+bool_handling:
+  no_compare_to_yes_no:
+    enforcement: MUST_NOT
+    value: "Don't compare BOOL to YES/NO directly"
+    good: |
+      if (isValid) { ... }
+      if (!isValid) { ... }
+    bad: |
+      if (isValid == YES) { ... }
+      if (isValid == NO) { ... }
+
+  safe_conversion:
+    enforcement: SHOULD
+    value: "Use explicit conversion for non-boolean values to BOOL"
+    good: |
+      BOOL result = (value != 0) ? YES : NO;
+    bad: |
+      // Implicit may fail for non-zero values
+      BOOL result = value;  // value=2 might not equal YES
+
+comments:
+  documentation:
+    enforcement: SHOULD
+    value: "Use Javadoc-style comments with @param and @return"
+    good: |
+      /**
+       * Fetches the user with the given identifier.
+       *
+       * @param userID The unique identifier for the user.
+       * @return The user if found, nil otherwise.
+       */
+      - (nullable GTMUser *)userWithID:(NSString *)userID;
+
+  implementation:
+    enforcement: MAY
+    value: "Use TODO and NOTE comments for implementation notes"
+    good: |
+      - (void)processData {
+        // TODO(username): Optimize for large datasets.
+
+        // NOTE: Order matters due to dependencies.
+      }
+
+best_practices:
+  no_new:
+    enforcement: SHOULD
+    value: "Use alloc/init instead of +new"
+    good: |
+      GTMUser *user = [[GTMUser alloc] init];
+    bad: |
+      GTMUser *user = [GTMUser new];
+
+  avoid_macros:
+    enforcement: SHOULD
+    value: "Prefer const and enums over macros"
+    good: |
+      static const NSInteger kMaxRetries = 3;
+
+      typedef NS_ENUM(NSInteger, GTMStatus) {
+        GTMStatusUnknown,
+        GTMStatusActive,
+        GTMStatusInactive,
+      };
+    bad: |
+      #define MAX_RETRIES 3
+
+  variable_scope:
+    enforcement: SHOULD
+    value: "Declare variables in narrowest scope and initialize at declaration"
+    good: |
+      - (void)process {
+        for (GTMItem *item in items) {
+          NSString *name = item.name;
+          [self processName:name];
+        }
+      }
+    bad: |
+      - (void)process {
+        NSString *name;
+        for (GTMItem *item in items) {
+          name = item.name;
+          [self processName:name];
+        }
+      }

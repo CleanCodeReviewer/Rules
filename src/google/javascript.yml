@@ -1,0 +1,345 @@
+# Google JavaScript Style Guide
+# Source: https://google.github.io/styleguide/jsguide.html
+
+_meta:
+  name: google-javascript
+  language: javascript
+  tags: [style, google]
+  source: "https://google.github.io/styleguide/jsguide.html"
+  note: "Google recommends migrating to TypeScript for new projects"
+
+naming:
+  class:
+    enforcement: MUST
+    value: UpperCamelCase
+  enum:
+    enforcement: MUST
+    value: UpperCamelCase
+  method:
+    enforcement: MUST
+    value: lowerCamelCase
+  function:
+    enforcement: MUST
+    value: lowerCamelCase
+  variable:
+    enforcement: MUST
+    value: lowerCamelCase
+  constant:
+    enforcement: MUST
+    value: CONSTANT_CASE
+  parameter:
+    enforcement: MUST
+    value: lowerCamelCase
+  module:
+    enforcement: MUST
+    value: lowerCamelCase
+
+  descriptive_names:
+    enforcement: MUST
+    value: "Names should be descriptive; avoid abbreviations"
+    good: |
+      const numberOfUsers = 5;
+      function calculateTotalPrice(items) { ... }
+    bad: |
+      const numUsrs = 5;
+      const cnt = 5;
+
+file_structure:
+  order:
+    enforcement: MUST
+    value:
+      - "License/copyright (if any)"
+      - "@fileoverview JSDoc"
+      - "Imports"
+      - "Implementation"
+
+  example:
+    enforcement: SHOULD
+    value: "Structure files with proper ordering"
+    good: |
+      /**
+       * @fileoverview Description of the file.
+       */
+
+      import {Component} from './component.js';
+      import {processData} from './utils.js';
+
+      // Implementation code
+
+imports:
+  use_es_modules:
+    enforcement: MUST
+    value: "Use ES modules with named imports; include .js extension"
+    good: |
+      // Named imports
+      import {describe, it, expect} from './testing.js';
+
+      // Namespace imports for large APIs
+      import * as tableview from './tableview.js';
+
+      // Always include .js extension
+      import {UserService} from './services/user.js';
+
+  avoid_default_exports:
+    enforcement: SHOULD
+    value: "Prefer named exports over default exports"
+    good: |
+      // Named export
+      export function processData() { ... }
+      export class UserService { ... }
+    bad: |
+      // Default export
+      export default function processData() { ... }
+
+formatting:
+  indentation:
+    enforcement: MUST
+    value: "2 spaces"
+  max_line_length:
+    enforcement: SHOULD
+    value: 80
+  semicolons:
+    enforcement: MUST
+    value: required
+
+  braces:
+    enforcement: MUST
+    value: "Required for all control structures"
+    good: |
+      if (condition) {
+        doSomething();
+      }
+    bad: |
+      if (condition) doSomething();
+
+variables:
+  use_const_let:
+    enforcement: MUST
+    value: "Use const and let; never use var"
+    good: |
+      const immutableValue = 42;
+      let mutableValue = 0;
+    bad: |
+      var oldStyle = 'avoid';
+
+  one_per_declaration:
+    enforcement: MUST
+    value: "One variable per declaration"
+    good: |
+      const a = 1;
+      const b = 2;
+    bad: |
+      const a = 1, b = 2;
+
+strings:
+  prefer_single_quotes:
+    enforcement: SHOULD
+    value: "Use single quotes for strings"
+    good: |
+      const message = 'Hello, world!';
+    bad: |
+      const message = "Hello, world!";
+
+  template_literals:
+    enforcement: SHOULD
+    value: "Use template literals for complex concatenation and multiline strings"
+    good: |
+      const greeting = `Hello, ${name}!`;
+
+      const html = `
+        <div>
+          <span>${content}</span>
+        </div>
+      `;
+
+functions:
+  arrow_functions:
+    enforcement: SHOULD
+    value: "Preferred for nested functions and callbacks"
+    good: |
+      items.map((item) => item.value);
+      items.filter((x) => x > 0);
+
+      // function declaration for named functions
+      function processData(data) {
+        return data.map((item) => transform(item));
+      }
+
+  default_parameters:
+    enforcement: SHOULD
+    value: "Use default parameters for optional arguments"
+    good: |
+      function greet(name, greeting = 'Hello') {
+        return `${greeting}, ${name}!`;
+      }
+
+  rest_parameters:
+    enforcement: MUST
+    value: "Use rest parameters instead of arguments object"
+    good: |
+      function sum(...numbers) {
+        return numbers.reduce((a, b) => a + b, 0);
+      }
+    bad: |
+      function sum() {
+        return Array.from(arguments).reduce((a, b) => a + b, 0);
+      }
+
+classes:
+  use_es6_syntax:
+    enforcement: MUST
+    value: "Use ES6 class syntax"
+    good: |
+      class Animal {
+        constructor(name) {
+          /** @private @const {string} */
+          this.name_ = name;
+        }
+
+        speak() {
+          console.log(`${this.name_} makes a sound.`);
+        }
+      }
+
+      class Dog extends Animal {
+        constructor(name) {
+          super(name);
+        }
+
+        speak() {
+          console.log(`${this.name_} barks.`);
+        }
+      }
+
+  fields_in_constructor:
+    enforcement: MUST
+    value: "Declare fields in constructor"
+    good: |
+      class MyClass {
+        constructor() {
+          /** @private {number} */
+          this.count_ = 0;
+
+          /** @const {string} */
+          this.name = 'default';
+        }
+      }
+
+collections:
+  trailing_commas:
+    enforcement: SHOULD
+    value: "Use trailing commas for multiline arrays and objects"
+    good: |
+      const items = [
+        'first',
+        'second',
+        'third',
+      ];
+
+      const config = {
+        name: 'test',
+        value: 42,
+      };
+
+  destructuring:
+    enforcement: SHOULD
+    value: "Use destructuring for arrays and objects"
+    good: |
+      // Array destructuring
+      const [first, second] = array;
+
+      // Object destructuring
+      const {name, value} = config;
+
+      // With defaults
+      const {name = 'default'} = config;
+
+control_structures:
+  strict_equality:
+    enforcement: MUST
+    value: "Use strict equality (=== and !==)"
+    good: |
+      if (value === 42) { ... }
+      if (value !== null) { ... }
+    exception: |
+      // Acceptable for checking null/undefined together
+      if (value == null) { ... }
+
+  switch_statements:
+    enforcement: SHOULD
+    value: "Use switch for multiple conditions on same value"
+    good: |
+      switch (value) {
+        case 'a':
+          handleA();
+          break;
+        case 'b':
+          handleB();
+          break;
+        default:
+          handleDefault();
+      }
+
+error_handling:
+  throw_error_objects:
+    enforcement: MUST
+    value: "Only throw Error objects"
+    good: |
+      throw new Error('Something went wrong');
+    bad: |
+      throw 'Something went wrong';
+      throw {message: 'error'};
+
+jsdoc:
+  required_for:
+    enforcement: MUST
+    value: "All public APIs"
+
+  function_example:
+    enforcement: SHOULD
+    value: "Document functions with JSDoc"
+    good: |
+      /**
+       * Processes the input data and returns results.
+       * @param {!Array<string>} items The items to process.
+       * @param {!Options=} options Optional configuration.
+       * @return {!Promise<!Result>} The processing result.
+       */
+      async function processData(items, options) {
+        // Implementation
+      }
+
+  type_annotations:
+    enforcement: SHOULD
+    value: "Use JSDoc type annotations"
+    good: |
+      /** @type {string} */
+      const name = 'test';
+
+      /** @type {?MyClass} */
+      let maybeNull = null;
+
+      /** @type {!MyClass} */
+      const notNull = new MyClass();
+
+best_practices:
+  avoid:
+    enforcement: MUST_NOT
+    value:
+      - "eval() - never use"
+      - "with statement - never use"
+      - "Wrapper objects (new Boolean, new String)"
+
+  prefer:
+    enforcement: SHOULD
+    value: "Use modern iteration patterns"
+    good: |
+      // Use for...of for iteration
+      for (const item of items) {
+        process(item);
+      }
+
+      // Use Object.keys/values/entries
+      for (const [key, value] of Object.entries(obj)) {
+        console.log(key, value);
+      }

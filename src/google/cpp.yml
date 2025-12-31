@@ -1,0 +1,416 @@
+# Google C++ Style Guide
+# Source: https://google.github.io/styleguide/cppguide.html
+
+_meta:
+  name: google-cpp
+  language: cpp
+  tags: [style, google]
+  source: "https://google.github.io/styleguide/cppguide.html"
+
+naming:
+  file:
+    enforcement: MUST
+    value: "lowercase_with_underscores"
+  file_extensions:
+    enforcement: MUST
+    value: ".cc, .h"
+  class:
+    enforcement: MUST
+    value: "PascalCase"
+  struct:
+    enforcement: MUST
+    value: "PascalCase"
+  function:
+    enforcement: MUST
+    value: "PascalCase"
+  variable:
+    enforcement: MUST
+    value: "snake_case"
+  class_member:
+    enforcement: MUST
+    value: "snake_case with trailing underscore (table_name_, num_entries_)"
+  constant:
+    enforcement: MUST
+    value: "kPascalCase"
+  enum_value:
+    enforcement: MUST
+    value: "kPascalCase"
+  namespace:
+    enforcement: MUST
+    value: "snake_case"
+  macro:
+    enforcement: MUST
+    value: "UPPER_SNAKE_CASE"
+
+  examples:
+    enforcement: MUST
+    value: "Follow naming conventions consistently"
+    good: |
+      class UrlTableProcessor {
+       public:
+        void ProcessUrl(const std::string& url);
+
+       private:
+        int num_urls_;       // Member variable with trailing underscore
+        std::string name_;
+      };
+
+      // Constants
+      const int kDaysInAWeek = 7;
+      const int kMaxBufferSize = 1024;
+
+      // Local variables
+      int local_variable = 0;
+      std::string user_name;
+
+formatting:
+  max_line_length:
+    enforcement: MUST
+    value: 80
+  indentation:
+    enforcement: MUST
+    value: "2 spaces, never tabs"
+
+  braces:
+    enforcement: MUST
+    value: "Opening brace on same line; namespaces don't add indentation"
+    good: |
+      if (condition) {
+        DoSomething();
+      }
+
+      void ShortFunction() { return; }
+
+      void LongerFunction() {
+        // Implementation
+      }
+
+      namespace my_namespace {
+
+      void MyFunction();
+
+      }  // namespace my_namespace
+
+  pointers_references:
+    enforcement: SHOULD
+    value: "Place * and & with type, not variable"
+    good: |
+      char* c;
+      const std::string& str;
+      std::unique_ptr<Foo> ptr;
+    bad: |
+      char *c;
+      const std::string &str;
+
+  function_parameters:
+    enforcement: SHOULD
+    value: "Align parameters or wrap all"
+    good: |
+      // All on one line if fits
+      ReturnType Function(Type1 arg1, Type2 arg2);
+
+      // Otherwise, align parameters
+      ReturnType LongFunctionName(Type1 very_long_argument_name,
+                                  Type2 another_argument,
+                                  Type3 yet_another);
+
+      // Or wrap all
+      ReturnType Function(
+          Type1 arg1,
+          Type2 arg2,
+          Type3 arg3);
+
+headers:
+  include_guards:
+    enforcement: MUST
+    value: "Use #ifndef guards with PROJECT_PATH_FILE_H_ format"
+    good: |
+      #ifndef PROJECT_PATH_FILE_H_
+      #define PROJECT_PATH_FILE_H_
+
+      // Content here
+
+      #endif  // PROJECT_PATH_FILE_H_
+
+  include_order:
+    enforcement: MUST
+    value:
+      - "Related header (for .cc files)"
+      - "C system headers"
+      - "C++ standard library headers"
+      - "Other libraries' headers"
+      - "Project headers"
+    good: |
+      // In foo.cc
+      #include "foo.h"
+
+      #include <sys/types.h>
+      #include <unistd.h>
+
+      #include <string>
+      #include <vector>
+
+      #include "absl/strings/str_cat.h"
+
+      #include "project/base/logging.h"
+
+  forward_declarations:
+    enforcement: SHOULD
+    value: "Prefer forward declarations to reduce compile dependencies"
+    good: |
+      class Foo;
+      class Bar;
+
+      void Process(Foo* foo, Bar* bar);
+
+      // Only include when you need the full definition
+      #include "foo.h"  // Needed if inheriting or using members
+
+classes:
+  access_control_order:
+    enforcement: MUST
+    value:
+      - "public"
+      - "protected"
+      - "private"
+
+  access_control_example:
+    enforcement: MUST
+    value: "Order access specifiers: public, protected, private"
+    good: |
+      class MyClass {
+       public:
+        // Public interface first
+        MyClass();
+        void PublicMethod();
+
+       protected:
+        // Protected members
+        void ProtectedMethod();
+
+       private:
+        // Private implementation
+        void PrivateHelper();
+
+        int data_;  // Data members are private
+      };
+
+  constructors:
+    enforcement: MUST
+    value: "Use initializer lists; explicit for single-argument constructors"
+    good: |
+      class Foo {
+       public:
+        Foo(int value, std::string name)
+            : value_(value),
+              name_(std::move(name)) {}
+
+       private:
+        int value_;
+        std::string name_;
+      };
+
+      class Bar {
+       public:
+        explicit Bar(int size);  // Prevents implicit conversion
+      };
+
+  copy_move:
+    enforcement: SHOULD
+    value: "Explicitly default or delete copy/move operations"
+    good: |
+      class MyClass {
+       public:
+        // Explicitly default
+        MyClass(const MyClass&) = default;
+        MyClass& operator=(const MyClass&) = default;
+
+        MyClass(MyClass&&) = default;
+        MyClass& operator=(MyClass&&) = default;
+
+        // Or delete if not copyable
+        MyClass(const MyClass&) = delete;
+        MyClass& operator=(const MyClass&) = delete;
+      };
+
+  inheritance:
+    enforcement: MUST
+    value: "Use override and final; prefer composition over inheritance"
+    good: |
+      class Derived : public Base {
+       public:
+        void VirtualMethod() override;  // Always use override
+        void FinalMethod() final;       // Cannot be overridden further
+      };
+
+      // Prefer composition over inheritance
+      class Car {
+       private:
+        Engine engine_;  // Composition
+      };
+
+functions:
+  max_lines:
+    enforcement: SHOULD
+    value: 40
+
+  output_parameters:
+    enforcement: SHOULD
+    value: "Prefer return values; use pointers (not references) for output parameters after inputs"
+    good: |
+      std::string GetName();  // Good - return value
+
+      // When output parameters needed, put after inputs
+      void GetName(Input input, std::string* output);
+
+      // Use pointers for output (not references)
+      void Process(const Input& input, Output* output);
+
+  short_functions:
+    enforcement: SHOULD
+    value: "Keep functions focused; ~40 lines is a reasonable maximum"
+    good: |
+      bool IsValidEmail(const std::string& email) {
+        return !email.empty() &&
+               email.find('@') != std::string::npos;
+      }
+    bad: |
+      void ProcessEverything(Data& data) {
+        // 200 lines of code...
+      }
+
+  default_arguments:
+    enforcement: MAY
+    value: "Allowed on non-virtual functions; prefer overloading when clearer"
+    good: |
+      void Process(int value, int options = 0);
+
+      // Prefer overloading when clearer
+      void Print(const std::string& msg);
+      void Print(const std::string& msg, int level);
+
+smart_pointers:
+  prefer_unique_ptr:
+    enforcement: MUST
+    value: "Use unique_ptr for exclusive ownership; shared_ptr sparingly; never raw new/delete for ownership"
+    good: |
+      std::unique_ptr<Foo> foo = std::make_unique<Foo>();
+
+      // Use shared_ptr sparingly (for shared ownership)
+      std::shared_ptr<Bar> bar = std::make_shared<Bar>();
+    bad: |
+      Foo* foo = new Foo();  // Bad
+      delete foo;            // Bad
+
+  factory_functions:
+    enforcement: SHOULD
+    value: "Return unique_ptr from factories"
+    good: |
+      std::unique_ptr<Widget> CreateWidget(Config config) {
+        return std::make_unique<Widget>(std::move(config));
+      }
+
+const_usage:
+  enforcement: MUST
+  value: "Use const liberally for parameters, methods, and members"
+  good: |
+    const int kBufferSize = 1024;
+
+    void Process(const std::string& input);  // const reference
+
+    class Foo {
+     public:
+      int GetValue() const;  // const method
+
+     private:
+      const int max_value_;  // const member
+    };
+
+error_handling:
+  no_exceptions:
+    enforcement: MUST_NOT
+    value: "Google style forbids exceptions; use status returns or optional"
+    good: |
+      absl::Status DoSomething() {
+        if (error_condition) {
+          return absl::InvalidArgumentError("Invalid input");
+        }
+        return absl::OkStatus();
+      }
+
+      std::optional<Value> FindValue(Key key) {
+        if (not_found) {
+          return std::nullopt;
+        }
+        return value;
+      }
+
+auto_keyword:
+  enforcement: MAY
+  value: "Use auto judiciously when type is obvious or for long type names"
+  good: |
+    auto iter = map.find(key);
+    auto ptr = std::make_unique<Foo>();
+
+    // Good - long type names
+    auto widget = CreateComplexWidget<Config, Handler>();
+  bad: |
+    auto result = Process(input);  // What type is result?
+
+comments:
+  file_comments:
+    enforcement: SHOULD
+    value: "Include copyright and file description"
+    good: |
+      // Copyright 2024 Company. All rights reserved.
+      //
+      // Brief description of the file.
+
+  class_comments:
+    enforcement: SHOULD
+    value: "Document class purpose and thread safety"
+    good: |
+      // Manages connections to the database.
+      //
+      // This class handles connection pooling, reconnection logic,
+      // and query execution. Thread-safe.
+      class DatabaseConnection {
+        ...
+      };
+
+  function_comments:
+    enforcement: SHOULD
+    value: "Document function behavior and return values"
+    good: |
+      // Returns the user with the given ID.
+      //
+      // Returns nullptr if no user found.
+      User* FindUser(int user_id);
+
+  implementation_comments:
+    enforcement: MAY
+    value: "Use TODO, HACK, NOTE for implementation notes"
+    good: |
+      void Process() {
+        // TODO(username): Optimize this for large inputs.
+
+        // HACK: This works around a bug in the library.
+
+        // NOTE: Order matters here due to dependency.
+      }
+
+checklist:
+  enforcement: MUST
+  value:
+    - "Files: lowercase_with_underscores.cc/.h"
+    - "Classes/Functions: PascalCase"
+    - "Variables: snake_case (members have trailing_)"
+    - "Constants: kPascalCase"
+    - "80 character line limit"
+    - "2-space indentation, no tabs"
+    - "Use include guards (#ifndef)"
+    - "Prefer unique_ptr for ownership"
+    - "Use const liberally"
+    - "No exceptions (use status returns)"
+    - "Use override for virtual methods"
+    - "Prefer composition over inheritance"

@@ -1,0 +1,389 @@
+# Google Python Style Guide
+# Source: https://google.github.io/styleguide/pyguide.html
+
+_meta:
+  name: google-python
+  language: python
+  tags: [style, google]
+  source: "https://google.github.io/styleguide/pyguide.html"
+
+imports:
+  order:
+    enforcement: MUST
+    value: |
+      1. Standard library imports
+      2. Related third party imports
+      3. Local application imports
+      Each group separated by a blank line.
+    good: |
+      import os
+      import sys
+      from typing import Optional
+
+      import numpy as np
+      import pandas as pd
+
+      from myproject.core import utils
+      from myproject.models import User
+
+  style:
+    enforcement: MUST
+    value: "Import modules, not classes directly; avoid wildcard imports"
+    good: |
+      from sound.effects import echo
+      echo.EchoFilter()
+
+      # Acceptable - import specific items
+      from sound.effects.echo import EchoFilter
+    bad: |
+      from sound.effects import *
+
+  prefer_absolute:
+    enforcement: SHOULD
+    value: "Prefer absolute imports over relative imports"
+    good: |
+      from mypackage.subpackage import module
+    acceptable: |
+      from . import sibling_module
+
+naming:
+  package:
+    enforcement: MUST
+    value: lowercase
+  module:
+    enforcement: MUST
+    value: lowercase_with_underscores
+  class:
+    enforcement: MUST
+    value: CapWords
+  exception:
+    enforcement: MUST
+    value: "CapWords with Error suffix"
+  function:
+    enforcement: MUST
+    value: lowercase_with_underscores
+  method:
+    enforcement: MUST
+    value: lowercase_with_underscores
+  constant:
+    enforcement: MUST
+    value: UPPERCASE_WITH_UNDERSCORES
+  variable:
+    enforcement: MUST
+    value: lowercase_with_underscores
+  parameter:
+    enforcement: MUST
+    value: lowercase_with_underscores
+  private:
+    enforcement: MUST
+    value: "_leading_underscore"
+
+  avoid:
+    enforcement: MUST_NOT
+    value:
+      - "Single character names except for counters (i, j, k) or coordinates (x, y, z)"
+      - "Dashes in module names"
+      - "__double_leading_and_trailing_underscore__ (reserved for Python)"
+
+formatting:
+  max_line_length:
+    enforcement: SHOULD
+    value: 80
+
+  line_length_exceptions:
+    enforcement: MAY
+    value:
+      - "Long import statements"
+      - "URLs in comments"
+      - "Long string constants"
+
+  line_continuation:
+    enforcement: SHOULD
+    value: "Use implicit continuation inside parentheses"
+    good: |
+      result = some_function(
+          argument_one,
+          argument_two,
+          argument_three,
+      )
+
+      # Python 3.10+ - parentheses work for with statements
+      with (
+          very_long_context_manager_name() as manager,
+          another_context_manager() as other,
+      ):
+          pass
+
+type_annotations:
+  required_for:
+    enforcement: MUST
+    value:
+      - "All public functions and methods"
+      - "All module-level variables"
+      - "Class attributes in __init__"
+
+  examples:
+    enforcement: SHOULD
+    value: "Use proper type annotations"
+    good: |
+      def greeting(name: str) -> str:
+          return f"Hello, {name}"
+
+      def process_items(items: list[int]) -> dict[str, int]:
+          return {"count": len(items), "sum": sum(items)}
+
+      # With Optional
+      def find_user(user_id: int) -> User | None:
+          ...
+
+      # Complex types
+      from typing import Callable, TypeVar
+
+      T = TypeVar("T")
+
+      def retry(func: Callable[..., T], times: int = 3) -> T:
+          ...
+
+docstrings:
+  required_for:
+    enforcement: MUST
+    value: "All public modules, functions, classes, and methods"
+  style:
+    enforcement: MUST
+    value: "Google style (Args, Returns, Raises sections)"
+
+  function_example:
+    enforcement: SHOULD
+    value: "Document functions with Args, Returns, and Raises sections"
+    good: |
+      def fetch_data(url: str, timeout: int = 30) -> dict:
+          """Fetches JSON data from the given URL.
+
+          Makes an HTTP GET request to the specified URL and returns
+          the parsed JSON response.
+
+          Args:
+              url: The URL to fetch data from.
+              timeout: Request timeout in seconds. Defaults to 30.
+
+          Returns:
+              A dictionary containing the parsed JSON response.
+
+          Raises:
+              HTTPError: If the request fails.
+              ValueError: If the response is not valid JSON.
+          """
+          ...
+
+  class_example:
+    enforcement: SHOULD
+    value: "Document classes with description and Attributes section"
+    good: |
+      class DataProcessor:
+          """Processes and transforms data records.
+
+          This class handles the ingestion, validation, and transformation
+          of data records from various sources.
+
+          Attributes:
+              source: The data source name.
+              records_processed: Count of records processed.
+          """
+
+          def __init__(self, source: str) -> None:
+              """Initializes the processor with a data source.
+
+              Args:
+                  source: Name of the data source.
+              """
+              self.source = source
+              self.records_processed = 0
+
+strings:
+  prefer_fstrings:
+    enforcement: SHOULD
+    value: "Use f-strings for string formatting"
+    good: |
+      message = f"Hello, {name}! You have {count} messages."
+    bad: |
+      message = "Hello, %s! You have %d messages." % (name, count)
+      message = "Hello, {}! You have {} messages.".format(name, count)
+
+  multiline:
+    enforcement: SHOULD
+    value: "Use implicit concatenation or triple quotes for multiline strings"
+    good: |
+      # Implicit concatenation
+      long_string = (
+          "This is a very long string that spans "
+          "multiple lines for readability."
+      )
+
+      # Triple quotes for actual multilines
+      query = """
+          SELECT *
+          FROM users
+          WHERE active = true
+      """
+
+collections:
+  trailing_commas:
+    enforcement: SHOULD
+    value: "Always use trailing commas in multi-line structures"
+    good: |
+      config = {
+          "debug": True,
+          "host": "localhost",
+          "port": 8080,
+      }
+
+      items = [
+          "first",
+          "second",
+          "third",
+      ]
+    bad: |
+      config = {
+          "debug": True,
+          "host": "localhost",
+          "port": 8080
+      }
+
+  comprehensions:
+    enforcement: SHOULD
+    value: "Use comprehensions for simple transformations; use explicit loops for complex logic"
+    good: |
+      squares = [x ** 2 for x in range(10)]
+      even_squares = [x ** 2 for x in range(10) if x % 2 == 0]
+
+      # Explicit loop for complex logic
+      result = []
+      for x in range(10):
+          if condition(x):
+              for y in range(x):
+                  if other_condition(x, y):
+                      result.append(transform(x, y))
+    bad: |
+      result = [
+          transform(x, y)
+          for x in range(10)
+          if condition(x)
+          for y in range(x)
+          if other_condition(x, y)
+      ]
+
+conditionals:
+  truthy_falsy:
+    enforcement: SHOULD
+    value: "Use implicit boolean evaluation"
+    good: |
+      if items:  # instead of if len(items) > 0
+          ...
+
+      if not name:  # instead of if name == ""
+          ...
+
+      # Exception - when None vs empty matters
+      if items is not None:  # explicitly checking for None
+          ...
+
+  ternary:
+    enforcement: SHOULD
+    value: "Use ternary only for simple expressions"
+    good: |
+      status = "active" if user.is_active else "inactive"
+    bad: |
+      result = value_if_true if some_condition and another_condition else other_value if fallback_condition else default_value
+
+error_handling:
+  specific_exceptions:
+    enforcement: MUST
+    value: "Catch specific exceptions, never use bare except"
+    good: |
+      try:
+          value = int(user_input)
+      except ValueError:
+          print("Invalid number")
+    bad: |
+      try:
+          value = int(user_input)
+      except:
+          print("Error")
+
+      # Also bad - too broad
+      try:
+          value = int(user_input)
+      except Exception:
+          print("Error")
+
+  exception_chaining:
+    enforcement: SHOULD
+    value: "Preserve original exception with 'from'"
+    good: |
+      try:
+          process_data()
+      except DataError as e:
+          raise ProcessingError("Failed to process") from e
+
+classes:
+  use_properties:
+    enforcement: SHOULD
+    value: "Use @property for computed attributes and validation"
+    good: |
+      class Circle:
+          def __init__(self, radius: float) -> None:
+              self._radius = radius
+
+          @property
+          def radius(self) -> float:
+              return self._radius
+
+          @radius.setter
+          def radius(self, value: float) -> None:
+              if value < 0:
+                  raise ValueError("Radius cannot be negative")
+              self._radius = value
+
+          @property
+          def area(self) -> float:
+              return 3.14159 * self._radius ** 2
+
+  use_dataclasses:
+    enforcement: SHOULD
+    value: "Use dataclasses for data containers"
+    good: |
+      from dataclasses import dataclass
+
+      @dataclass
+      class Point:
+          x: float
+          y: float
+
+      @dataclass(frozen=True)
+      class Config:
+          host: str
+          port: int = 8080
+
+context_managers:
+  usage:
+    enforcement: MUST
+    value: "Use context managers for resource management"
+    good: |
+      with open("file.txt") as f:
+          content = f.read()
+
+      # Multiple context managers
+      with open("input.txt") as fin, open("output.txt", "w") as fout:
+          fout.write(fin.read())
+
+main_guard:
+  usage:
+    enforcement: MUST
+    value: "Always use if __name__ == '__main__' guard"
+    good: |
+      def main() -> None:
+          """Main entry point."""
+          ...
+
+      if __name__ == "__main__":
+          main()

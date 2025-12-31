@@ -1,0 +1,446 @@
+# Google Java Style Guide
+# Source: https://google.github.io/styleguide/javaguide.html
+
+_meta:
+  name: google-java
+  language: java
+  tags: [style, google]
+  source: "https://google.github.io/styleguide/javaguide.html"
+
+naming:
+  package:
+    enforcement: MUST
+    value: "lowercase only (e.g., com.example.deepspace)"
+  class:
+    enforcement: MUST
+    value: "UpperCamelCase (e.g., Character, ImmutableList)"
+  interface:
+    enforcement: MUST
+    value: "UpperCamelCase (e.g., Readable, Closeable)"
+  method:
+    enforcement: MUST
+    value: "lowerCamelCase (e.g., sendMessage, stop)"
+  constant:
+    enforcement: MUST
+    value: "UPPER_SNAKE_CASE (e.g., MAX_SIZE, DEFAULT_TIMEOUT)"
+  variable:
+    enforcement: MUST
+    value: "lowerCamelCase (e.g., userName, itemCount)"
+  parameter:
+    enforcement: MUST
+    value: "lowerCamelCase (e.g., userId, options)"
+  type_variable:
+    enforcement: SHOULD
+    value: "Single letter or ClassT (e.g., E, T, RequestT)"
+
+  rules:
+    enforcement: SHOULD
+    value: "Use descriptive names; avoid abbreviations and prefixes"
+    good: |
+      int numberOfUsers;
+      List<Customer> activeCustomers;
+      void processPayment(Payment payment);
+    bad: |
+      int numUsrs;           // Unclear abbreviation
+      String mName;          // Hungarian notation
+      String name_;          // Trailing underscore
+
+source_file:
+  order:
+    enforcement: MUST
+    value:
+      - "License/copyright (if present)"
+      - "Package statement"
+      - "Import statements"
+      - "Exactly one top-level class"
+
+  structure:
+    enforcement: MUST
+    value: "Follow the standard source file structure"
+    good: |
+      // Copyright 2024 Company. All rights reserved.
+
+      package com.example.project;
+
+      import java.util.List;
+      import java.util.Map;
+
+      import com.google.common.collect.ImmutableList;
+
+      public class MyClass {
+          // ...
+      }
+
+imports:
+  explicit:
+    enforcement: MUST
+    value: "Use explicit imports; avoid wildcard imports"
+    good: |
+      import java.util.List;
+      import java.util.Map;
+      import java.util.ArrayList;
+    bad: |
+      import java.util.*;
+
+  static_imports:
+    enforcement: SHOULD
+    value: "Static imports grouped separately"
+    good: |
+      import static java.lang.Math.PI;
+      import static java.lang.Math.abs;
+
+      import java.util.List;
+
+formatting:
+  max_line_length:
+    enforcement: MUST
+    value: 100
+  indentation:
+    enforcement: MUST
+    value: "2 spaces per block level"
+
+  indentation_example:
+    enforcement: MUST
+    value: "Use consistent 2-space indentation"
+    good: |
+      public class Example {
+        private int value;
+
+        public void process() {
+          if (condition) {
+            doSomething();
+          }
+        }
+      }
+
+  braces:
+    enforcement: MUST
+    value: "K&R style - opening brace on same line; always use braces, even for single statements"
+    good: |
+      if (condition) {
+        doSomething();
+      } else {
+        doOtherThing();
+      }
+
+      // Always use braces, even for single statements
+      if (condition) {
+        return true;
+      }
+
+      // Empty blocks
+      void doNothing() {}
+
+  one_statement_per_line:
+    enforcement: MUST
+    value: "Write only one statement per line"
+    good: |
+      int a = 1;
+      int b = 2;
+    bad: |
+      int a = 1; int b = 2;
+
+  whitespace:
+    enforcement: MUST
+    value: "Follow whitespace conventions for keywords, operators, and commas"
+    good: |
+      // Space after keywords
+      if (condition) { ... }
+      for (int i = 0; i < n; i++) { ... }
+      while (running) { ... }
+
+      // Space around binary operators
+      int sum = a + b;
+      boolean valid = x > 0 && y > 0;
+
+      // Space after commas
+      process(a, b, c);
+
+      // No space after method name
+      doSomething();
+
+classes:
+  member_order:
+    enforcement: SHOULD
+    value: "Order: static fields, instance fields, constructors, methods (grouped logically)"
+    good: |
+      public class User {
+          // 1. Static fields
+          private static final Logger LOG = Logger.getLogger(User.class);
+
+          // 2. Instance fields
+          private final String id;
+          private String name;
+
+          // 3. Constructors
+          public User(String id, String name) {
+              this.id = id;
+              this.name = name;
+          }
+
+          // 4. Methods (grouped logically)
+          public String getId() {
+              return id;
+          }
+
+          public String getName() {
+              return name;
+          }
+
+          public void setName(String name) {
+              this.name = name;
+          }
+      }
+
+  overloads_together:
+    enforcement: MUST
+    value: "Keep overloaded methods together"
+    good: |
+      public void process(String input) { ... }
+      public void process(String input, Options options) { ... }
+      public void process(List<String> inputs) { ... }
+    bad: |
+      public void process(String input) { ... }
+      public void validate() { ... }  // Don't put between overloads
+      public void process(List<String> inputs) { ... }
+
+constants:
+  definition:
+    enforcement: MUST
+    value: "A constant is a static final field with deeply immutable content"
+    good: |
+      static final int MAX_SIZE = 100;
+      static final ImmutableList<String> NAMES = ImmutableList.of("Alice", "Bob");
+      static final Joiner COMMA_JOINER = Joiner.on(',');
+    bad: |
+      static final int[] VALUES = {1, 2, 3};  // Array is mutable
+      static String name = "test";             // Not final
+      final int count = 5;                     // Not static
+
+methods:
+  parameter_order:
+    enforcement: SHOULD
+    value: "Input parameters before output parameters; required before optional"
+
+  parameter_example:
+    enforcement: SHOULD
+    value: "Order parameters appropriately"
+    good: |
+      void process(Input input, Output output);
+      void configure(String name, @Nullable Options options);
+
+  override:
+    enforcement: MUST
+    value: "Always use @Override annotation"
+    good: |
+      @Override
+      public String toString() {
+          return name;
+      }
+
+      @Override
+      public boolean equals(Object obj) {
+          ...
+      }
+
+  static_access:
+    enforcement: MUST
+    value: "Access static members via class name, not instance"
+    good: |
+      Foo.staticMethod();
+    bad: |
+      foo.staticMethod();
+
+javadoc:
+  required_on:
+    enforcement: MUST
+    value:
+      - "Every public class"
+      - "Every public or protected member"
+      - "Exceptions: self-explanatory methods, overrides"
+
+  format:
+    enforcement: SHOULD
+    value: "Use proper Javadoc format with tags"
+    good: |
+      /**
+       * Returns the user with the given ID.
+       *
+       * <p>This method searches the database for users matching
+       * the provided identifier.
+       *
+       * @param id the unique identifier of the user
+       * @return the user if found
+       * @throws UserNotFoundException if no user exists with the given ID
+       */
+      public User getUser(String id) throws UserNotFoundException {
+          ...
+      }
+
+  block_tag_order:
+    enforcement: SHOULD
+    value:
+      - "@param"
+      - "@return"
+      - "@throws"
+      - "@deprecated"
+
+  deprecated_example:
+    enforcement: MUST
+    value: "Use @Deprecated annotation with Javadoc @deprecated tag"
+    good: |
+      /**
+       * Processes the input data.
+       *
+       * @param input the data to process
+       * @param options processing options
+       * @return the processed result
+       * @throws IllegalArgumentException if input is invalid
+       * @deprecated Use {@link #processV2(Input)} instead.
+       */
+      @Deprecated
+      public Result process(Input input, Options options) {
+          ...
+      }
+
+error_handling:
+  never_ignore:
+    enforcement: MUST_NOT
+    value: "Never ignore caught exceptions; handle or explain"
+    good: |
+      try {
+          doSomething();
+      } catch (IOException e) {
+          logger.warn("IO failed, using default", e);
+          return defaultValue;
+      }
+
+      // Explain why ignoring is OK
+      try {
+          doSomething();
+      } catch (NumberFormatException expected) {
+          // Input validation already ensures this won't happen
+      }
+    bad: |
+      try {
+          doSomething();
+      } catch (Exception e) {
+          // Empty - swallowing exception
+      }
+
+  specific_exceptions:
+    enforcement: SHOULD
+    value: "Catch specific exceptions; avoid catching generic Exception"
+    good: |
+      try {
+          parseInput(data);
+      } catch (NumberFormatException e) {
+          handleInvalidNumber(e);
+      } catch (IOException e) {
+          handleIOError(e);
+      }
+    bad: |
+      try {
+          parseInput(data);
+      } catch (Exception e) {
+          // Too broad
+      }
+
+best_practices:
+  avoid_finalizers:
+    enforcement: MUST_NOT
+    value: "Never use finalize(); use try-with-resources instead"
+    good: |
+      try (InputStream is = new FileInputStream(file)) {
+          // Use the stream
+      }
+    bad: |
+      @Override
+      protected void finalize() throws Throwable {
+          // Never do this
+      }
+
+  prefer_immutability:
+    enforcement: SHOULD
+    value: "Prefer immutable classes"
+    good: |
+      public final class Point {
+          private final int x;
+          private final int y;
+
+          public Point(int x, int y) {
+              this.x = x;
+              this.y = y;
+          }
+
+          public int getX() { return x; }
+          public int getY() { return y; }
+      }
+
+  use_optional:
+    enforcement: SHOULD
+    value: "Return Optional instead of null"
+    good: |
+      public Optional<User> findUser(String id) {
+          User user = database.get(id);
+          return Optional.ofNullable(user);
+      }
+
+      // Usage
+      findUser(id)
+          .map(User::getName)
+          .orElse("Unknown");
+
+modern_java:
+  try_with_resources:
+    enforcement: MUST
+    value: "Use try-with-resources for auto-closing"
+    good: |
+      try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+          return reader.readLine();
+      }
+
+      // Multiple resources
+      try (InputStream in = new FileInputStream(src);
+           OutputStream out = new FileOutputStream(dest)) {
+          // Use streams
+      }
+
+  diamond_operator:
+    enforcement: SHOULD
+    value: "Use diamond operator for type inference"
+    good: |
+      Map<String, List<Integer>> map = new HashMap<>();
+      List<String> list = new ArrayList<>();
+    bad: |
+      Map<String, List<Integer>> map = new HashMap<String, List<Integer>>();
+
+  lambdas_streams:
+    enforcement: SHOULD
+    value: "Use lambdas and streams for functional operations"
+    good: |
+      list.forEach(item -> process(item));
+      list.stream()
+          .filter(item -> item.isActive())
+          .map(Item::getName)
+          .collect(Collectors.toList());
+
+      // Method references
+      list.forEach(this::process);
+      list.stream().map(Item::getName);
+
+checklist:
+  enforcement: MUST
+  value:
+    - "Package names are lowercase only"
+    - "Class/interface names are UpperCamelCase"
+    - "Method/variable names are lowerCamelCase"
+    - "Constants are UPPER_SNAKE_CASE"
+    - "No wildcard imports"
+    - "2-space indentation"
+    - "Maximum 100 characters per line"
+    - "Braces on same line (K&R style)"
+    - "Always use @Override"
+    - "Never ignore caught exceptions"
+    - "Javadoc on all public APIs"
+    - "Access static members via class name"

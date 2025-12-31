@@ -1,0 +1,317 @@
+# Google Common Lisp Style Guide
+# Source: https://google.github.io/styleguide/lispguide.xml
+
+_meta:
+  name: google-lisp
+  language: lisp
+  tags: [style, google]
+  source: "https://google.github.io/styleguide/lispguide.xml"
+
+naming:
+  symbols:
+    enforcement: MUST
+    value:
+      - "Lowercase"
+      - "Hyphen-separated words"
+      - "Pronounceable names"
+
+  symbols_example:
+    enforcement: MUST
+    value: "Use lowercase, hyphen-separated, pronounceable names"
+    good: |
+      (defun calculate-total-price (items)
+        ...)
+    bad: |
+      (defun calcTotPrc (items)
+        ...)
+
+  special_patterns:
+    constant:
+      enforcement: MUST
+      value: "+name+ (e.g., +maximum-size+)"
+
+    global_variable:
+      enforcement: MUST
+      value: "*name* (e.g., *database-connection*)"
+
+    predicate_single_word:
+      enforcement: SHOULD
+      value: "name-p (e.g., evenp, stringp)"
+
+    predicate_multi_word:
+      enforcement: SHOULD
+      value: "name-is-p (e.g., list-empty-p)"
+
+  special_patterns_example:
+    enforcement: MUST
+    value: "Use standard naming conventions for special forms"
+    good: |
+      ;; Constants
+      (defconstant +pi+ 3.14159)
+      (defconstant +max-buffer-size+ 4096)
+
+      ;; Global variables
+      (defvar *current-user* nil)
+      (defparameter *default-timeout* 30)
+
+      ;; Predicates
+      (defun valid-email-p (string)
+        ...)
+
+formatting:
+  max_line_length:
+    enforcement: SHOULD
+    value: 100
+
+  indentation:
+    enforcement: MUST
+    value: "Use Emacs cl-indent or equivalent"
+
+  indentation_example:
+    enforcement: MUST
+    value: "Align arguments and use proper indentation for special forms"
+    good: |
+      ;; Function calls - align arguments
+      (do-something first-argument
+                    second-argument
+                    third-argument)
+
+      ;; Special forms have specific indentation
+      (defun function-name (arg1 arg2)
+        (let ((local1 value1)
+              (local2 value2))
+          (when condition
+            (do-something))))
+
+  parentheses:
+    enforcement: MUST_NOT
+    value: "Never on a line by themselves"
+    good: |
+      (defun example ()
+        (when condition
+          (do-something)))
+    bad: |
+      (defun example ()
+        (when condition
+          (do-something)
+        )
+      )
+
+  whitespace:
+    enforcement: MUST
+    value:
+      - "Single space between forms"
+      - "No space after ( or before )"
+      - "One blank line between top-level forms"
+
+comments:
+  by_semicolon_count:
+    enforcement: MUST
+    value:
+      four: "File headers"
+      three: "Top-level forms or groups"
+      two: "Code block comments"
+      one: "End-of-line remarks"
+
+  example:
+    enforcement: MUST
+    value: "Use appropriate semicolon count for comment type"
+    good: |
+      ;;;; file-header-comment.lisp
+      ;;;; Description of the file contents.
+
+      ;;; Section or group of functions
+
+      (defun my-function (arg)
+        ;; Comment for following code block
+        (let ((result nil))
+          (process arg)  ; Parenthetical remark
+          result))
+
+documentation:
+  docstrings_required:
+    enforcement: MUST
+    value: "For all public APIs"
+
+  capitalize_lisp_symbols:
+    enforcement: MUST
+    value: "In docstrings, write Lisp symbols in capitals"
+
+  example:
+    enforcement: MUST
+    value: "Include comprehensive docstrings for public functions"
+    good: |
+      (defun calculate-distance (point1 point2)
+        "Calculate the Euclidean distance between POINT1 and POINT2.
+
+         Both arguments should be lists of coordinates (x y).
+         Returns the distance as a floating-point number."
+        (let ((dx (- (first point2) (first point1)))
+              (dy (- (second point2) (second point1))))
+          (sqrt (+ (* dx dx) (* dy dy)))))
+
+functions:
+  explicit_returns:
+    enforcement: SHOULD
+    value: "Use explicit return when appropriate"
+    good: |
+      (defun find-item (items predicate)
+        (dolist (item items)
+          (when (funcall predicate item)
+            (return item)))
+        nil)
+
+  arguments:
+    enforcement: SHOULD
+    value: "Use &optional and &key appropriately; avoid &allow-other-keys and &aux"
+    good: |
+      (defun create-user (name &key (active t) email)
+        ...)
+
+      ;; Declare ignored arguments
+      (defun callback (event data)
+        (declare (ignore data))
+        (process-event event))
+
+conditionals:
+  when_unless:
+    enforcement: MUST
+    value: "Use WHEN/UNLESS for single branch"
+    good: |
+      (when condition
+        (do-something))
+
+      (unless condition
+        (do-alternative))
+    bad: |
+      (if condition
+          (do-something)
+          nil)
+
+  if_for_two_branches:
+    enforcement: MUST
+    value: "Use IF for exactly two branches"
+    good: |
+      (if condition
+          (do-this)
+          (do-that))
+
+  cond_for_multiple_branches:
+    enforcement: MUST
+    value: "Use COND for multiple conditional branches"
+    good: |
+      (cond
+        ((eq x 'a) (handle-a))
+        ((eq x 'b) (handle-b))
+        ((eq x 'c) (handle-c))
+        (t (handle-default)))
+
+  prefer_ecase_etypecase:
+    enforcement: SHOULD
+    value: "Use ECASE/ETYPECASE to catch errors early"
+    good: |
+      (ecase status
+        (:active (process-active))
+        (:inactive (process-inactive)))
+    bad: |
+      (case status
+        (:active (process-active))
+        (:inactive (process-inactive))
+        (otherwise (error "Unknown status")))
+
+data_structures:
+  choose_appropriately:
+    enforcement: SHOULD
+    value: "Select appropriate data structure for the use case"
+    good: |
+      ;; Use arrays for random access
+      (make-array 100 :element-type 'fixnum)
+
+      ;; Use hash tables for key-value lookup
+      (make-hash-table :test 'equal)
+
+      ;; Use structs/classes for heterogeneous data
+      (defstruct point
+        x
+        y)
+
+  lists_only_for:
+    enforcement: SHOULD
+    value:
+      - "Small collections"
+      - "Sequential iteration"
+      - "Building/destructuring"
+
+  nil_usage:
+    enforcement: MUST
+    value:
+      - "NIL for false"
+      - "Use (endp list) for empty list check"
+      - "Don't use NIL for 'unknown' - use explicit values or multiple returns"
+
+iteration:
+  prefer_iteration_over_recursion:
+    enforcement: SHOULD
+    value: "Most Lisp implementations don't guarantee tail call optimization"
+    good: |
+      ;; Use LOOP
+      (loop for item in items
+            when (valid-p item)
+              collect (process item))
+
+      ;; Use DOLIST
+      (dolist (item items)
+        (process item))
+
+      ;; Use mapping functions
+      (mapcar #'process items)
+      (remove-if-not #'valid-p items)
+
+macros:
+  use_sparingly:
+    enforcement: SHOULD
+    value: "Often, which is seldom"
+
+  when_needed:
+    enforcement: MAY
+    value: "Use macros for resource management patterns"
+    good: |
+      (defmacro with-database ((db connection-string) &body body)
+        "Execute BODY with DB bound to a database connection."
+        `(let ((,db (connect-database ,connection-string)))
+           (unwind-protect
+               (progn ,@body)
+             (disconnect-database ,db))))
+
+  call_with_pattern:
+    enforcement: SHOULD
+    value: "Separate syntax from semantics"
+    good: |
+      (defun call-with-database (connection-string function)
+        (let ((db (connect-database connection-string)))
+          (unwind-protect
+              (funcall function db)
+            (disconnect-database db))))
+
+      (defmacro with-database ((db connection-string) &body body)
+        `(call-with-database ,connection-string
+                             (lambda (,db) ,@body)))
+
+style:
+  functional_approach:
+    enforcement: SHOULD
+    value: "Avoid side effects when possible; rebind instead of modifying"
+    good: |
+      (let ((result (if condition new-value old-value)))
+        ...)
+    bad: |
+      (setf result old-value)
+      (when condition
+        (setf result new-value))
+
+  function_references:
+    enforcement: MUST
+    value: "Use #' for lexical function reference; use ' only for dynamic linking"
+    good: |
+      (mapcar #'process items)
+      (funcall #'my-function arg)

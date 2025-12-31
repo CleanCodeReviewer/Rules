@@ -1,0 +1,434 @@
+# Airbnb React Style Guide
+# Source: https://github.com/airbnb/javascript/tree/master/react
+
+_meta:
+  name: airbnb-react
+  language: javascript
+  tags: [style, airbnb, react]
+  source: "https://github.com/airbnb/javascript/tree/master/react"
+
+basics:
+  one_component_per_file:
+    enforcement: MUST
+    value: "Only include one React component per file"
+    good: |
+      // UserProfile.jsx
+      export function UserProfile() { ... }
+    bad: |
+      // Components.jsx
+      export function UserProfile() { ... }
+      export function UserAvatar() { ... }
+
+  prefer_functional:
+    enforcement: SHOULD
+    value: "Prefer functional components with hooks over class components"
+    good: |
+      function UserProfile({ name, email }) {
+        const [isEditing, setIsEditing] = useState(false);
+        return <div>...</div>;
+      }
+    bad: |
+      class UserProfile extends React.Component {
+        state = { isEditing: false };
+        render() { return <div>...</div>; }
+      }
+
+  jsx_extension:
+    enforcement: MUST
+    value: "Use .jsx extension for files with JSX"
+
+naming:
+  file_names:
+    enforcement: MUST
+    value: "PascalCase for component files"
+    good: |
+      UserProfile.jsx
+      NavigationBar.jsx
+    bad: |
+      userProfile.jsx
+      navigation-bar.jsx
+
+  component_names:
+    enforcement: MUST
+    value: "Match filename to component name"
+
+  props:
+    enforcement: MUST
+    value: "Use camelCase for prop names"
+    good: |
+      <Foo userName="John" phoneNumber="123" />
+    bad: |
+      <Foo UserName="John" phone_number="123" />
+
+jsx_syntax:
+  self_closing_tags:
+    enforcement: MUST
+    value: "Use self-closing tags for elements without children"
+    good: |
+      <Component />
+      <img src={url} alt="description" />
+    bad: |
+      <Component></Component>
+      <img src={url} alt="description"></img>
+
+  quotes:
+    enforcement: MUST
+    value: "Use double quotes for JSX attributes"
+    good: |
+      <Foo bar="baz" />
+    bad: |
+      <Foo bar='baz' />
+
+  curly_spacing:
+    enforcement: MUST
+    value: "No space inside curly braces"
+    good: |
+      <Foo bar={baz} />
+    bad: |
+      <Foo bar={ baz } />
+
+  boolean_props:
+    enforcement: SHOULD
+    value: "Omit value when prop is true"
+    good: |
+      <Foo disabled />
+      <Foo hidden />
+    bad: |
+      <Foo disabled={true} />
+      <Foo hidden={true} />
+
+  alt_text:
+    enforcement: MUST
+    value: "Always include alt for img elements"
+    good: |
+      <img src={url} alt="Profile picture" />
+      <img src={url} alt="" role="presentation" />  // decorative
+    bad: |
+      <img src={url} />
+
+alignment:
+  multiline_props:
+    enforcement: SHOULD
+    value: "Put props on separate lines when there are multiple"
+    good: |
+      <Foo
+        superLongParam="bar"
+        anotherSuperLongParam="baz"
+      />
+
+      // Single line if fits
+      <Foo bar="bar" />
+    bad: |
+      <Foo superLongParam="bar"
+           anotherSuperLongParam="baz" />
+
+  closing_bracket:
+    enforcement: MUST
+    value: "Closing bracket on its own line for multi-line elements"
+    good: |
+      <Foo
+        bar="bar"
+        baz="baz"
+      />
+    bad: |
+      <Foo
+        bar="bar"
+        baz="baz" />
+
+props:
+  destructure:
+    enforcement: SHOULD
+    value: "Destructure props in function signature"
+    good: |
+      function UserProfile({ name, email, onUpdate }) {
+        return <div>{name}</div>;
+      }
+    bad: |
+      function UserProfile(props) {
+        return <div>{props.name}</div>;
+      }
+
+  default_parameters:
+    enforcement: SHOULD
+    value: "Use default parameters instead of defaultProps"
+    good: |
+      function UserProfile({ name = 'Anonymous', role = 'user' }) {
+        return <div>{name}</div>;
+      }
+    bad: |
+      function UserProfile({ name, role }) { ... }
+      UserProfile.defaultProps = { name: 'Anonymous', role: 'user' };
+
+  typescript_preferred:
+    enforcement: SHOULD
+    value: "Use TypeScript for prop types"
+    good: |
+      interface UserProfileProps {
+        name: string;
+        email: string;
+        onUpdate?: (user: User) => void;
+      }
+
+      function UserProfile({ name, email, onUpdate }: UserProfileProps) {
+        ...
+      }
+
+  spread_carefully:
+    enforcement: SHOULD
+    value: "Spread props carefully - prefer explicit props"
+    good: |
+      <Component name={name} email={email} />
+    acceptable: |
+      <Component {...props} />  // when forwarding all props
+    bad: |
+      <Component {...props} name={overrideName} />  // order unclear
+
+refs:
+  use_ref_hook:
+    enforcement: MUST
+    value: "Use useRef hook"
+    good: |
+      function TextInput() {
+        const inputRef = useRef(null);
+
+        const focus = () => {
+          inputRef.current?.focus();
+        };
+
+        return <input ref={inputRef} />;
+      }
+    bad: |
+      <input ref="myInput" />  // string refs deprecated
+
+  callback_refs:
+    enforcement: SHOULD
+    value: "Use callback refs when you need to measure elements"
+    good: |
+      function MeasuredComponent() {
+        const [height, setHeight] = useState(0);
+
+        const measuredRef = useCallback((node) => {
+          if (node !== null) {
+            setHeight(node.getBoundingClientRect().height);
+          }
+        }, []);
+
+        return <div ref={measuredRef}>...</div>;
+      }
+
+methods:
+  event_handlers:
+    enforcement: SHOULD
+    value: "Name handlers with handle prefix"
+    good: |
+      function Button() {
+        const handleClick = () => { ... };
+        const handleMouseEnter = () => { ... };
+
+        return (
+          <button
+            onClick={handleClick}
+            onMouseEnter={handleMouseEnter}
+          >
+            Click me
+          </button>
+        );
+      }
+
+  callback_props:
+    enforcement: SHOULD
+    value: "Name callback props with on prefix"
+    good: |
+      <Button onClick={handleClick} onHover={handleHover} />
+
+      function Button({ onClick, onHover }) { ... }
+
+hooks:
+  rules:
+    enforcement: MUST
+    value:
+      - "Only call hooks at the top level"
+      - "Only call hooks in functional components or custom hooks"
+
+  top_level_only:
+    enforcement: MUST
+    value: "Never call hooks conditionally"
+    good: |
+      function Component() {
+        const [value, setValue] = useState(0);
+        const data = useMemo(() => compute(value), [value]);
+
+        return <div>{data}</div>;
+      }
+    bad: |
+      function Component({ shouldFetch }) {
+        if (shouldFetch) {
+          const data = useFetch();  // Never do this!
+        }
+      }
+
+  useeffect_dependencies:
+    enforcement: MUST
+    value: "Always specify useEffect dependencies"
+    good: |
+      useEffect(() => {
+        fetchData(userId);
+      }, [userId]);
+    bad: |
+      useEffect(() => {
+        fetchData(userId);
+      }, []);  // userId should be in deps
+
+  custom_hooks:
+    enforcement: SHOULD
+    value: "Extract reusable logic into custom hooks"
+    good: |
+      function useWindowSize() {
+        const [size, setSize] = useState({ width: 0, height: 0 });
+
+        useEffect(() => {
+          const handleResize = () => {
+            setSize({ width: window.innerWidth, height: window.innerHeight });
+          };
+          window.addEventListener('resize', handleResize);
+          return () => window.removeEventListener('resize', handleResize);
+        }, []);
+
+        return size;
+      }
+
+      // Usage
+      function Component() {
+        const { width, height } = useWindowSize();
+      }
+
+conditional_rendering:
+  short_circuit:
+    enforcement: SHOULD
+    value: "Use short-circuit evaluation for conditional rendering"
+    good: |
+      {isLoggedIn && <UserProfile />}
+
+      // Ternary for if/else
+      {isLoggedIn ? <UserProfile /> : <LoginButton />}
+    bad: |
+      {isAdmin
+        ? hasPermission
+          ? <AdminPanel />
+          : <PermissionDenied />
+        : <UserDashboard />
+      }
+
+  early_returns:
+    enforcement: SHOULD
+    value: "Use early returns for null checks"
+    good: |
+      function UserProfile({ user }) {
+        if (!user) {
+          return null;
+        }
+
+        return <div>{user.name}</div>;
+      }
+
+  avoid_zero_render:
+    enforcement: MUST
+    value: "Avoid rendering 0 with short-circuit"
+    good: |
+      {items.length > 0 && <List items={items} />}
+      {items.length ? <List items={items} /> : null}
+    bad: |
+      {items.length && <List items={items} />}  // renders "0" when empty
+
+lists:
+  stable_keys:
+    enforcement: MUST
+    value: "Use stable unique IDs for keys, not array indices"
+    good: |
+      {users.map((user) => (
+        <UserCard key={user.id} user={user} />
+      ))}
+    bad: |
+      {users.map((user, index) => (
+        <UserCard key={index} user={user} />
+      ))}
+
+  avoid_inline_functions:
+    enforcement: SHOULD
+    value: "Avoid inline functions in lists that create new references each render"
+    good: |
+      function UserList({ users, onSelect }) {
+        return users.map((user) => (
+          <UserCard
+            key={user.id}
+            user={user}
+            onSelect={onSelect}
+          />
+        ));
+      }
+    bad: |
+      {users.map((user) => (
+        <UserCard
+          key={user.id}
+          user={user}
+          onSelect={() => handleSelect(user.id)}
+        />
+      ))}
+
+performance:
+  memoization:
+    enforcement: SHOULD
+    value: "Use useMemo and useCallback for expensive operations"
+    good: |
+      // Memoize expensive computations
+      const sortedItems = useMemo(() => {
+        return items.sort((a, b) => a.name.localeCompare(b.name));
+      }, [items]);
+
+      // Memoize callbacks passed to children
+      const handleClick = useCallback(() => {
+        doSomething(id);
+      }, [id]);
+
+      // Memoize components that receive same props
+      const MemoizedChild = React.memo(ChildComponent);
+
+  stable_references:
+    enforcement: SHOULD
+    value: "Avoid creating new objects/arrays in render"
+    good: |
+      const style = useMemo(() => ({ color: 'red' }), []);
+      <Child style={style} />
+    bad: |
+      <Child style={{ color: 'red' }} />  // new object every render
+
+state_management:
+  lift_when_needed:
+    enforcement: SHOULD
+    value: "Lift state to parent when siblings need shared state"
+    good: |
+      function Parent() {
+        const [selected, setSelected] = useState(null);
+
+        return (
+          <>
+            <List items={items} onSelect={setSelected} />
+            <Details item={selected} />
+          </>
+        );
+      }
+
+  colocate_state:
+    enforcement: SHOULD
+    value: "Keep state as close as possible to where it's used"
+    good: |
+      function SearchInput() {
+        const [query, setQuery] = useState('');
+        return <input value={query} onChange={(e) => setQuery(e.target.value)} />;
+      }
+    bad: |
+      // Unnecessary lifting
+      function Parent() {
+        const [query, setQuery] = useState('');
+        return <SearchInput query={query} setQuery={setQuery} />;
+      }

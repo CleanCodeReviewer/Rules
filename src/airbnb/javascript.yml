@@ -1,0 +1,440 @@
+# Airbnb JavaScript Style Guide
+# Source: https://github.com/airbnb/javascript
+
+_meta:
+  name: airbnb-javascript
+  language: javascript
+  tags: [style, airbnb]
+  source: "https://github.com/airbnb/javascript"
+
+types:
+  primitives:
+    enforcement: MUST
+    value: "Access primitives directly by value"
+  complex:
+    enforcement: MUST
+    value: "Access complex types by reference (objects, arrays, functions)"
+
+references:
+  prefer_const:
+    enforcement: MUST
+    value: "Use const for all references; avoid var"
+    good: |
+      const a = 1;
+      const b = 2;
+    bad: |
+      var a = 1;
+      var b = 2;
+
+  use_let:
+    enforcement: SHOULD
+    value: "Use let when you need to reassign a reference"
+    good: |
+      let count = 1;
+      if (condition) {
+        count += 1;
+      }
+    bad: |
+      var count = 1;
+
+objects:
+  literal_syntax:
+    enforcement: MUST
+    value: "Use the literal syntax for object creation"
+    good: |
+      const item = {};
+    bad: |
+      const item = new Object();
+
+  shorthand_properties:
+    enforcement: SHOULD
+    value: "Use property shorthand"
+    good: |
+      const name = 'Luke';
+      const age = 25;
+      const person = { name, age };
+    bad: |
+      const person = { name: name, age: age };
+
+  shorthand_methods:
+    enforcement: SHOULD
+    value: "Use method shorthand"
+    good: |
+      const obj = {
+        value: 1,
+        addValue(val) {
+          return this.value + val;
+        },
+      };
+    bad: |
+      const obj = {
+        value: 1,
+        addValue: function(val) {
+          return this.value + val;
+        },
+      };
+
+  quote_only_invalid:
+    enforcement: SHOULD
+    value: "Only quote properties that are invalid identifiers"
+    good: |
+      const obj = {
+        foo: 1,
+        bar: 2,
+        'data-id': 3,
+      };
+    bad: |
+      const obj = {
+        'foo': 1,
+        'bar': 2,
+        'data-id': 3,
+      };
+
+  prefer_spread:
+    enforcement: SHOULD
+    value: "Prefer object spread over Object.assign"
+    good: |
+      const original = { a: 1, b: 2 };
+      const copy = { ...original, c: 3 };
+    bad: |
+      const copy = Object.assign({}, original, { c: 3 });
+
+arrays:
+  literal_syntax:
+    enforcement: MUST
+    value: "Use the literal syntax for array creation"
+    good: |
+      const items = [];
+    bad: |
+      const items = new Array();
+
+  use_spread_to_copy:
+    enforcement: SHOULD
+    value: "Use array spreads to copy arrays"
+    good: |
+      const itemsCopy = [...items];
+    bad: |
+      const itemsCopy = items.slice();
+
+  array_from:
+    enforcement: SHOULD
+    value: "Use Array.from or spread for array-like objects"
+    good: |
+      const nodeList = document.querySelectorAll('.items');
+      const nodes = Array.from(nodeList);
+      const nodes = [...nodeList];
+
+  return_in_callbacks:
+    enforcement: MUST
+    value: "Use return statements in array method callbacks"
+    good: |
+      [1, 2, 3].map((x) => x + 1);
+
+      [1, 2, 3].map((x) => {
+        const y = x + 1;
+        return x * y;
+      });
+
+destructuring:
+  object_destructuring:
+    enforcement: SHOULD
+    value: "Use object destructuring when accessing multiple properties"
+    good: |
+      function getFullName({ firstName, lastName }) {
+        return `${firstName} ${lastName}`;
+      }
+    bad: |
+      function getFullName(user) {
+        return `${user.firstName} ${user.lastName}`;
+      }
+
+  array_destructuring:
+    enforcement: SHOULD
+    value: "Use array destructuring"
+    good: |
+      const arr = [1, 2, 3, 4];
+      const [first, second] = arr;
+    bad: |
+      const first = arr[0];
+      const second = arr[1];
+
+strings:
+  single_quotes:
+    enforcement: MUST
+    value: "Use single quotes for strings"
+    good: |
+      const name = 'Capt. Janeway';
+    bad: |
+      const name = "Capt. Janeway";
+
+  template_literals:
+    enforcement: SHOULD
+    value: "Use template literals for string interpolation"
+    good: |
+      const greeting = `Hello, ${name}!`;
+    bad: |
+      const greeting = 'Hello, ' + name + '!';
+
+  no_eval:
+    enforcement: MUST_NOT
+    value: "Never use eval() on strings"
+
+functions:
+  use_declarations:
+    enforcement: SHOULD
+    value: "Use function declarations or named arrow functions"
+    good: |
+      function foo() {
+        // ...
+      }
+
+      // Also good - named arrow for callbacks
+      const foo = () => {
+        // ...
+      };
+    bad: |
+      // Anonymous function expression
+      const foo = function() {
+        // ...
+      };
+
+  default_parameters:
+    enforcement: SHOULD
+    value: "Use default parameter syntax"
+    good: |
+      function handleThings(opts = {}) {
+        // ...
+      }
+    bad: |
+      function handleThings(opts) {
+        opts = opts || {};
+      }
+
+  rest_parameters:
+    enforcement: SHOULD
+    value: "Use rest parameters instead of arguments"
+    good: |
+      function concatenateAll(...args) {
+        return args.join('');
+      }
+    bad: |
+      function concatenateAll() {
+        const args = Array.prototype.slice.call(arguments);
+        return args.join('');
+      }
+
+  spread_for_apply:
+    enforcement: SHOULD
+    value: "Use spread operator to call variadic functions"
+    good: |
+      const numbers = [1, 2, 3, 4, 5];
+      const max = Math.max(...numbers);
+    bad: |
+      const max = Math.max.apply(Math, numbers);
+
+arrow_functions:
+  use_for_callbacks:
+    enforcement: SHOULD
+    value: "Use arrow functions for callbacks"
+    good: |
+      [1, 2, 3].map((x) => x * x);
+    bad: |
+      [1, 2, 3].map(function(x) {
+        return x * x;
+      });
+
+  implicit_return:
+    enforcement: SHOULD
+    value: "Use implicit return for single expressions"
+    good: |
+      [1, 2, 3].map((x) => x * x);
+
+      // For object literals, wrap in parentheses
+      [1, 2, 3].map((x) => ({ value: x }));
+
+  multiline_wrap:
+    enforcement: SHOULD
+    value: "Wrap multi-line returns in parentheses"
+    good: |
+      ['get', 'post', 'put'].map((httpMethod) => (
+        Object.prototype.hasOwnProperty.call(
+          httpMagicObjectWithALongName,
+          httpMethod,
+        )
+      ));
+
+classes:
+  use_class_syntax:
+    enforcement: SHOULD
+    value: "Use class syntax instead of prototype manipulation"
+    good: |
+      class Queue {
+        constructor(contents = []) {
+          this.queue = [...contents];
+        }
+        pop() {
+          return this.queue.shift();
+        }
+      }
+    bad: |
+      function Queue(contents = []) {
+        this.queue = [...contents];
+      }
+      Queue.prototype.pop = function() {
+        return this.queue.shift();
+      };
+
+  use_extends:
+    enforcement: SHOULD
+    value: "Use extends for inheritance"
+
+  method_chaining:
+    enforcement: MAY
+    value: "Methods can return this to enable chaining"
+    good: |
+      class Jedi {
+        jump() {
+          this.jumping = true;
+          return this;
+        }
+
+        setHeight(height) {
+          this.height = height;
+          return this;
+        }
+      }
+
+      const luke = new Jedi();
+      luke.jump().setHeight(20);
+
+modules:
+  use_import_export:
+    enforcement: MUST
+    value: "Use import/export over require/module.exports"
+    good: |
+      import { es6 } from './AirbnbStyleGuide';
+      export default es6;
+    bad: |
+      const AirbnbStyleGuide = require('./AirbnbStyleGuide');
+      module.exports = AirbnbStyleGuide.es6;
+
+  no_wildcard_imports:
+    enforcement: SHOULD_NOT
+    value: "Avoid wildcard imports"
+    good: |
+      import { named1, named2 } from './module';
+    bad: |
+      import * as Module from './module';
+
+  no_duplicate_imports:
+    enforcement: MUST
+    value: "Consolidate imports from the same module"
+    good: |
+      import { named1, named2 } from './module';
+    bad: |
+      import { named1 } from './module';
+      import { named2 } from './module';
+
+comparison:
+  strict_equality:
+    enforcement: MUST
+    value: "Use === and !== over == and !="
+    good: |
+      if (name === 'John') { ... }
+    bad: |
+      if (name == 'John') { ... }
+
+  boolean_shortcuts:
+    enforcement: SHOULD
+    value: "Use shortcuts for booleans"
+    good: |
+      if (isValid) { ... }
+      if (!isValid) { ... }
+    bad: |
+      if (isValid === true) { ... }
+      if (isValid !== false) { ... }
+
+  explicit_for_strings_numbers:
+    enforcement: SHOULD
+    value: "Use explicit comparison for strings and numbers"
+    good: |
+      if (name !== '') { ... }
+      if (items.length > 0) { ... }
+
+formatting:
+  indentation:
+    enforcement: MUST
+    value: "2 spaces (soft tabs)"
+
+  space_before_blocks:
+    enforcement: MUST
+    value: "Place 1 space before the leading brace"
+    good: |
+      if (condition) {
+        // ...
+      }
+
+      function bar() {
+        // ...
+      }
+    bad: |
+      if (condition){
+        // ...
+      }
+
+  space_around_operators:
+    enforcement: MUST
+    value: "Set off operators with spaces"
+    good: |
+      const x = y + 5;
+    bad: |
+      const x=y+5;
+
+  trailing_commas:
+    enforcement: SHOULD
+    value: "Use trailing commas in multi-line structures"
+    good: |
+      const hero = {
+        firstName: 'Dana',
+        lastName: 'Scully',
+      };
+
+      const heroes = [
+        'Batman',
+        'Superman',
+      ];
+
+semicolons:
+  required:
+    enforcement: MUST
+    value: "Use semicolons"
+    good: |
+      const name = 'Skywalker';
+      function foo() {
+        return 'search your feelings';
+      }
+    bad: |
+      const name = 'Skywalker'
+      function foo() {
+        return 'search your feelings'
+      }
+
+naming:
+  variable:
+    enforcement: MUST
+    value: camelCase
+  function:
+    enforcement: MUST
+    value: camelCase
+  class:
+    enforcement: MUST
+    value: PascalCase
+  constant:
+    enforcement: MUST
+    value: SCREAMING_SNAKE_CASE
+  private:
+    enforcement: SHOULD
+    value: "_leadingUnderscore"
+  boolean:
+    enforcement: SHOULD
+    value: "is/has/can prefix (isActive, hasPermission)"

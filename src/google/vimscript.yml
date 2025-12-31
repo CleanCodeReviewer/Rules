@@ -1,0 +1,261 @@
+# Google Vim Script Style Guide
+# Source: https://google.github.io/styleguide/vimscriptguide.xml
+
+_meta:
+  name: google-vimscript
+  language: vimscript
+  tags: [style, google]
+  source: "https://google.github.io/styleguide/vimscriptguide.xml"
+
+naming:
+  plugin:
+    enforcement: MUST
+    value: kebab-case
+
+  function:
+    enforcement: MUST
+    value: PascalCase
+
+  script_local_function:
+    enforcement: MUST
+    value: "s:PascalCase"
+
+  autoload_function:
+    enforcement: MUST
+    value: "path#PascalCase"
+
+  command:
+    enforcement: MUST
+    value: PascalCase
+
+  augroup:
+    enforcement: MUST
+    value: snake_case
+
+  variable:
+    enforcement: MUST
+    value: "scope:snake_case"
+
+  variable_scopes:
+    enforcement: MUST
+    value: "Always use explicit scope prefixes"
+    good: |
+      " Global
+      let g:my_plugin_setting = 1
+
+      " Script-local
+      let s:internal_state = []
+
+      " Function-local
+      let l:temp_value = 0
+
+      " Buffer-local
+      let b:buffer_setting = 'value'
+
+      " Function argument
+      function! MyFunc(arg)
+        echo a:arg
+      endfunction
+
+formatting:
+  indentation:
+    enforcement: MUST
+    value: "2 spaces, never tabs"
+
+  indentation_example:
+    enforcement: MUST
+    value: "Use 2-space indentation consistently"
+    good: |
+      function! MyFunction()
+        if condition
+          call DoSomething()
+        else
+          call DoOther()
+        endif
+      endfunction
+
+  max_line_length:
+    enforcement: SHOULD
+    value: 80
+
+  continuation_lines:
+    enforcement: MUST
+    value: "Indent 4 extra spaces"
+    good: |
+      let s:long_list = [
+          \ 'first',
+          \ 'second',
+          \ 'third',
+          \ ]
+
+  operators:
+    enforcement: MUST
+    value: "Space around operators"
+    good: |
+      let result = a + b
+      let flag = x && y
+    bad: |
+      let result=a+b
+
+strings:
+  prefer_single_quotes:
+    enforcement: SHOULD
+    value: "Use single quotes for simple strings"
+    good: |
+      let name = 'example'
+      echo 'Hello, world!'
+
+      " Use double quotes only when needed
+      let message = "Tab:\tNewline:\n"
+
+functions:
+  definition:
+    enforcement: MUST
+    value: "Use ! for reloadability and abort for error handling"
+    good: |
+      function! myplugin#Process(input) abort
+        " Implementation
+        return result
+      endfunction
+
+  autoload:
+    enforcement: SHOULD
+    value: "Place in autoload/ directory"
+    good: |
+      " autoload/myplugin.vim
+      function! myplugin#Initialize() abort
+        " Called as myplugin#Initialize()
+      endfunction
+
+      function! myplugin#Process(data) abort
+        " Implementation
+      endfunction
+
+  script_local:
+    enforcement: SHOULD
+    value: "Use script-local functions for internal helpers"
+    good: |
+      " Only visible within this script
+      function! s:HelperFunction() abort
+        " Implementation
+      endfunction
+
+commands:
+  definition:
+    enforcement: MUST
+    value: "Define in plugin/commands.vim; don't use ! to avoid silently overwriting"
+    good: |
+      command MyCommand call myplugin#Run()
+      command -nargs=1 MyCommandWithArg call myplugin#Run(<args>)
+
+autocommands:
+  definition:
+    enforcement: MUST
+    value: "Define in plugin/autocmds.vim; always clear with autocmd! for re-entrancy"
+    good: |
+      augroup my_plugin
+        autocmd!
+        autocmd BufWritePre * call s:OnSave()
+        autocmd FileType python call s:SetupPython()
+      augroup END
+
+mappings:
+  plug_mappings:
+    enforcement: SHOULD
+    value: "Use <Plug> for user-remappable mappings"
+    good: |
+      nnoremap <Plug>(MyPluginAction) :call myplugin#Action()<CR>
+
+      " Default mapping
+      nmap <leader>a <Plug>(MyPluginAction)
+
+regular_expressions:
+  always_specify_mode:
+    enforcement: MUST
+    value: "Use explicit mode (\\m = magic, \\C = case-sensitive)"
+    good: |
+      let pattern = '\m\Cpattern'
+
+  matching_operators:
+    enforcement: MUST
+    value: "Use explicit case-sensitivity"
+    good: |
+      if name =~# 'Pattern'   " Case-sensitive
+      if name =~? 'pattern'   " Case-insensitive
+    bad: |
+      if name =~ 'pattern'    " Depends on ignorecase setting
+
+builtins:
+  use_normal_bang:
+    enforcement: MUST
+    value: "Ignores user mappings"
+    good: |
+      normal! gg
+    bad: |
+      normal gg
+
+  use_setlocal:
+    enforcement: SHOULD
+    value: "Use buffer-local settings"
+    good: |
+      setlocal tabstop=2
+      let &l:tabstop = 2
+    bad: |
+      set tabstop=2
+
+type_checking:
+  enforcement: SHOULD
+  value: "Use explicit type comparison"
+  good: |
+    if type(value) == type('')
+    if type(value) == type([])
+    if type(value) == type({})
+
+    " Or use is#
+    if value is# expected
+
+error_handling:
+  enforcement: MUST
+  value: "Use try/catch for error handling with abort functions"
+  good: |
+    function! myplugin#Process() abort
+      try
+        call s:RiskyOperation()
+      catch /E123/
+        " Handle specific error
+        echohl ErrorMsg
+        echomsg 'Operation failed: ' . v:exception
+        echohl None
+      endtry
+    endfunction
+
+best_practices:
+  use_maktaba_library:
+    enforcement: MAY
+    value: "Consider using maktaba for plugin development"
+    good: |
+      let s:plugin = maktaba#plugin#Get('myplugin')
+
+  messaging:
+    enforcement: SHOULD
+    value: "Message sparingly - only for long operations, errors, or explicit user requests"
+    good: |
+      " For errors
+      echohl ErrorMsg
+      echomsg 'Error: Something went wrong'
+      echohl None
+
+      " For warnings
+      echohl WarningMsg
+      echomsg 'Warning: Deprecated usage'
+      echohl None
+
+  avoid_global_functions:
+    enforcement: MUST
+    value: "Use autoload instead"
+    good: |
+      function! myplugin#MyFunc()
+      endfunction
+    bad: |
+      function! GlobalFunc()
+      endfunction

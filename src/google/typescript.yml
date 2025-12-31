@@ -1,0 +1,417 @@
+# Google TypeScript Style Guide
+# Source: https://google.github.io/styleguide/tsguide.html
+
+_meta:
+  name: google-typescript
+  language: typescript
+  tags: [style, google]
+  source: "https://google.github.io/styleguide/tsguide.html"
+
+naming:
+  class:
+    enforcement: MUST
+    value: UpperCamelCase
+  interface:
+    enforcement: MUST
+    value: UpperCamelCase
+  type:
+    enforcement: MUST
+    value: UpperCamelCase
+  enum:
+    enforcement: MUST
+    value: UpperCamelCase
+  enum_value:
+    enforcement: MUST
+    value: CONSTANT_CASE
+  function:
+    enforcement: MUST
+    value: lowerCamelCase
+  method:
+    enforcement: MUST
+    value: lowerCamelCase
+  variable:
+    enforcement: MUST
+    value: lowerCamelCase
+  parameter:
+    enforcement: MUST
+    value: lowerCamelCase
+  property:
+    enforcement: MUST
+    value: lowerCamelCase
+  constant:
+    enforcement: MUST
+    value: CONSTANT_CASE
+
+  rules:
+    enforcement: MUST
+    value: "Names should be descriptive; abbreviations only for very short-scoped variables (< 10 lines); no Hungarian notation"
+    good: |
+      const userCount = 5;
+      function calculateTotalPrice(items: Item[]): number { ... }
+    bad: |
+      const nUsers = 5;  // Hungarian notation
+      const cnt = 5;     // Unclear abbreviation
+
+imports:
+  use_named_exports:
+    enforcement: MUST
+    value: "Always use named exports; never use default exports"
+    good: |
+      export function processData() { ... }
+      export class UserService { ... }
+    bad: |
+      export default function processData() { ... }
+
+  import_style:
+    enforcement: SHOULD
+    value: "Use named imports for frequently used symbols; namespace imports for large APIs"
+    good: |
+      // Named imports for frequently used symbols
+      import {describe, it, expect} from './testing';
+
+      // Namespace imports for large APIs
+      import * as tableview from './tableview';
+
+      // Use relative imports within the same project
+      import {UserService} from './services/user';
+    bad: |
+      // Not absolute paths
+      import {UserService} from 'src/services/user';
+
+  organization:
+    enforcement: SHOULD
+    value: |
+      1. Framework imports
+      2. Third-party imports
+      3. Local imports
+    good: |
+      // 1. Framework imports
+      import {Component, OnInit} from '@angular/core';
+
+      // 2. Third-party imports
+      import {Observable} from 'rxjs';
+
+      // 3. Local imports
+      import {UserService} from './services/user';
+      import {User} from './models/user';
+
+type_annotations:
+  use_inference:
+    enforcement: SHOULD
+    value: "Let TypeScript infer types when obvious; be explicit when not"
+    good: |
+      // Type is obvious - use inference
+      const message = 'Hello';
+      const count = 42;
+      const items = ['a', 'b', 'c'];
+
+      // Explicit when not obvious
+      const data: UserData = await fetchData();
+      function parse(input: string): ParseResult { ... }
+
+  prefer_undefined:
+    enforcement: SHOULD
+    value: "Prefer undefined over null"
+    good: |
+      function findUser(id: string): User | undefined { ... }
+
+      interface Options {
+        timeout?: number;  // Optional
+      }
+    bad: |
+      function findUser(id: string): User | null { ... }
+
+  prefer_unknown:
+    enforcement: MUST
+    value: "Use unknown instead of any"
+    good: |
+      function parseJson(json: string): unknown {
+        return JSON.parse(json);
+      }
+    bad: |
+      function parseJson(json: string): any {
+        return JSON.parse(json);
+      }
+
+  type_assertions:
+    enforcement: SHOULD
+    value: "Prefer type guards over assertions"
+    good: |
+      // Prefer type guards
+      function isUser(obj: unknown): obj is User {
+        return typeof obj === 'object' && obj !== null && 'id' in obj;
+      }
+
+      // Use as for assertions when necessary
+      const element = document.getElementById('app') as HTMLDivElement;
+
+classes:
+  use_readonly:
+    enforcement: SHOULD
+    value: "Use readonly for immutable properties"
+    good: |
+      class User {
+        readonly id: string;
+        readonly createdAt: Date;
+
+        constructor(id: string) {
+          this.id = id;
+          this.createdAt = new Date();
+        }
+      }
+
+  parameter_properties:
+    enforcement: SHOULD
+    value: "Use parameter properties for concise constructors"
+    good: |
+      class UserService {
+        constructor(
+          private readonly http: HttpClient,
+          private readonly logger: Logger,
+        ) {}
+      }
+    verbose: |
+      class UserService {
+        private readonly http: HttpClient;
+        private readonly logger: Logger;
+
+        constructor(http: HttpClient, logger: Logger) {
+          this.http = http;
+          this.logger = logger;
+        }
+      }
+
+  use_private_keyword:
+    enforcement: MUST
+    value: "Use TypeScript's private keyword, not JavaScript's # syntax"
+    good: |
+      class User {
+        private password: string;
+      }
+    bad: |
+      class User {
+        #password: string;
+      }
+
+  static_methods:
+    enforcement: MAY
+    value: "Use static methods for utility functions that don't need instance state"
+    good: |
+      class MathUtils {
+        static add(a: number, b: number): number {
+          return a + b;
+        }
+      }
+
+      // Call on class, not instance
+      MathUtils.add(1, 2);
+
+functions:
+  prefer_declarations:
+    enforcement: SHOULD
+    value: "Use function declarations for named functions; arrows for callbacks"
+    good: |
+      // Function declaration for named functions
+      function processData(data: Data): Result {
+        ...
+      }
+
+      // Arrow for callbacks
+      items.map((item) => item.value);
+    bad: |
+      // Arrow for named functions
+      const processData = (data: Data): Result => {
+        ...
+      };
+
+  arrow_bodies:
+    enforcement: SHOULD
+    value: "Use concise body when returning; block body when not"
+    good: |
+      // Concise when return value is used
+      const doubled = numbers.map((n) => n * 2);
+
+      // Block body when not returning
+      numbers.forEach((n) => {
+        console.log(n);
+      });
+    bad: |
+      // Unnecessary block
+      const doubled = numbers.map((n) => {
+        return n * 2;
+      });
+
+  default_parameters:
+    enforcement: SHOULD
+    value: "Use default parameters for optional arguments"
+    good: |
+      function greet(name: string, greeting = 'Hello'): string {
+        return `${greeting}, ${name}!`;
+      }
+
+      // Destructured with defaults
+      function createUser({ name, role = 'user' }: UserOptions): User {
+        ...
+      }
+
+interfaces:
+  prefer_interfaces:
+    enforcement: SHOULD
+    value: "Use interfaces for object shapes; types for unions and intersections"
+    good: |
+      // Interface for objects
+      interface User {
+        id: string;
+        name: string;
+        email: string;
+      }
+
+      // Type for unions, intersections
+      type Status = 'active' | 'inactive' | 'pending';
+      type AdminUser = User & { permissions: string[] };
+
+  avoid_empty:
+    enforcement: MUST_NOT
+    value: "Avoid empty interfaces"
+    good: |
+      type AnyObject = Record<string, unknown>;
+    bad: |
+      interface Empty {}
+
+control_flow:
+  always_use_braces:
+    enforcement: MUST
+    value: "Always use braces for control structures"
+    good: |
+      if (condition) {
+        doSomething();
+      }
+    bad: |
+      if (condition) doSomething();
+
+  prefer_for_of:
+    enforcement: SHOULD
+    value: "Prefer for...of over index loops"
+    good: |
+      for (const item of items) {
+        process(item);
+      }
+    avoid: |
+      for (let i = 0; i < items.length; i++) {
+        process(items[i]);
+      }
+
+  for_in_with_hasown:
+    enforcement: MUST
+    value: "Only use for...in for objects with hasOwn check"
+    good: |
+      for (const key in obj) {
+        if (Object.hasOwn(obj, key)) {
+          ...
+        }
+      }
+
+  switch_statements:
+    enforcement: SHOULD
+    value: "Use switch for multiple conditions on same value"
+    good: |
+      switch (status) {
+        case 'active':
+          activate();
+          break;
+        case 'inactive':
+          deactivate();
+          break;
+        default:
+          throw new Error(`Unknown status: ${status}`);
+      }
+
+error_handling:
+  throw_error_instances:
+    enforcement: MUST
+    value: "Only throw Error instances"
+    good: |
+      throw new Error('Something went wrong');
+      throw new CustomError('Validation failed', { field: 'email' });
+    bad: |
+      throw 'Something went wrong';
+      throw { message: 'error' };
+
+  custom_error_classes:
+    enforcement: SHOULD
+    value: "Use custom error classes for specific error types"
+    good: |
+      class ValidationError extends Error {
+        constructor(
+          message: string,
+          public readonly field: string,
+        ) {
+          super(message);
+          this.name = 'ValidationError';
+        }
+      }
+
+documentation:
+  jsdoc_for_public_apis:
+    enforcement: MUST
+    value: "Document public APIs with JSDoc"
+    good: |
+      /**
+       * Fetches a user by their unique identifier.
+       *
+       * @param id - The user's unique identifier
+       * @returns The user if found, undefined otherwise
+       * @throws {NetworkError} If the request fails
+       */
+      async function getUser(id: string): Promise<User | undefined> {
+        ...
+      }
+
+  implementation_comments:
+    enforcement: SHOULD
+    value: "Use // comments for implementation details"
+    good: |
+      // Use // for implementation details
+      function process(data: Data): Result {
+        // Filter out invalid entries first
+        const valid = data.filter(isValid);
+
+        // Transform to required format
+        return valid.map(transform);
+      }
+
+type_coercion:
+  string_conversion:
+    enforcement: SHOULD
+    value: "Use String() or template literals for string conversion"
+    good: |
+      const str = String(value);
+      const str = `${value}`;
+    bad: |
+      const str = value + '';
+      const str = new String(value);  // Creates object
+
+  number_conversion:
+    enforcement: SHOULD
+    value: "Use Number() for number conversion"
+    good: |
+      const num = Number(value);
+      if (Number.isNaN(num)) {
+        // Handle invalid number
+      }
+
+      // For integers
+      const int = Math.floor(Number(value));
+    bad: |
+      const num = +value;  // Less readable
+
+  boolean_conversion:
+    enforcement: SHOULD
+    value: "Use Boolean() or !! for boolean conversion"
+    good: |
+      const bool = Boolean(value);
+
+      // Also acceptable
+      const bool = !!value;
+    bad: |
+      const bool = new Boolean(value);  // Creates object

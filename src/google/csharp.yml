@@ -1,0 +1,309 @@
+# Google C# Style Guide
+# Source: https://google.github.io/styleguide/csharp-style.html
+
+_meta:
+  name: google-csharp
+  language: csharp
+  tags: [style, google]
+  source: "https://google.github.io/styleguide/csharp-style.html"
+
+naming:
+  class:
+    enforcement: MUST
+    value: "PascalCase"
+  interface:
+    enforcement: MUST
+    value: "IPascalCase (prefix with I)"
+  method:
+    enforcement: MUST
+    value: "PascalCase"
+  property:
+    enforcement: MUST
+    value: "PascalCase"
+  public_field:
+    enforcement: MUST
+    value: "PascalCase"
+  namespace:
+    enforcement: MUST
+    value: "PascalCase"
+  enum:
+    enforcement: MUST
+    value: "PascalCase"
+  local_variable:
+    enforcement: MUST
+    value: "camelCase"
+  parameter:
+    enforcement: MUST
+    value: "camelCase"
+  private_field:
+    enforcement: MUST
+    value: "_camelCase (prefix with underscore)"
+  file:
+    enforcement: MUST
+    value: "PascalCase matching the primary class name"
+
+  examples:
+    enforcement: MUST
+    value: "Follow naming conventions consistently"
+    good: |
+      public class UserService { }
+      public interface IUserRepository { }
+
+      private string _userName;
+      private int _count;
+
+      public string FirstName { get; set; }
+      public bool IsActive { get; set; }
+
+      void ProcessData(string userId, int itemCount) {
+        var localVariable = 0;
+      }
+
+formatting:
+  indentation:
+    enforcement: MUST
+    value: "2 spaces, never tabs"
+  max_line_length:
+    enforcement: MUST
+    value: 100
+
+  braces:
+    enforcement: MUST
+    value: "K&R style - no line break before opening brace; braces always required"
+    good: |
+      if (condition) {
+        DoSomething();
+      } else {
+        DoOtherThing();
+      }
+
+      public class MyClass {
+        public void Method() {
+          // Implementation
+        }
+      }
+    bad: |
+      if (condition)
+        return true;
+
+  spacing:
+    enforcement: MUST
+    value: "Space after keywords and commas; no space after method name"
+    good: |
+      if (condition) { ... }
+      for (int i = 0; i < n; i++) { ... }
+      while (running) { ... }
+
+      Process(a, b, c);
+      DoSomething();
+
+using_declarations:
+  enforcement: MUST
+  value: "At top of file; System namespaces first"
+  good: |
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
+    using Google.Cloud.Storage;
+    using Newtonsoft.Json;
+
+    using MyProject.Models;
+    using MyProject.Services;
+
+classes:
+  member_order:
+    enforcement: SHOULD
+    value: |
+      1. Nested classes/enums/delegates
+      2. Static fields
+      3. Instance fields
+      4. Constructors
+      5. Properties
+      6. Methods
+      Within each group, order by access level: public, protected, private.
+    good: |
+      public class User {
+        // Static fields
+        private static readonly Logger _logger = new Logger();
+
+        // Instance fields
+        private readonly string _id;
+        private string _name;
+
+        // Constructors
+        public User(string id, string name) {
+          _id = id;
+          _name = name;
+        }
+
+        // Properties
+        public string Id => _id;
+        public string Name { get; set; }
+
+        // Methods
+        public void Process() {
+          // Implementation
+        }
+
+        private void Helper() {
+          // Implementation
+        }
+      }
+
+variables:
+  constants:
+    enforcement: SHOULD
+    value: "Use const when possible"
+    good: |
+      private const int MaxRetries = 3;
+      private const string DefaultName = "Unknown";
+    bad: |
+      private static readonly int MaxRetries = 3;  // Should be const
+
+  var_keyword:
+    enforcement: SHOULD
+    value: "Use var when type is obvious; explicit type when unclear"
+    good: |
+      var users = new List<User>();
+      var stream = File.OpenRead(path);
+      var customer = new Customer();
+
+      // LINQ
+      var query = users.Where(u => u.IsActive);
+
+      // Explicit when unclear
+      DataResult result = GetData();
+    bad: |
+      var result = GetData();  // What type?
+
+collections:
+  prefer_restrictive_types:
+    enforcement: SHOULD
+    value: "Use restrictive input types; IList when transferring ownership"
+    good: |
+      public void Process(IReadOnlyList<Item> items) {
+        // Can't modify the list
+      }
+
+      public IList<Item> GetItems() {
+        return new List<Item>();
+      }
+
+lambdas:
+  enforcement: SHOULD
+  value: "Keep simple; convert complex lambdas to methods"
+  good: |
+    items.Where(x => x.IsActive);
+    items.Select(x => x.Name);
+
+    // Convert complex lambda to method
+    var filtered = items.Where(IsValidItem);
+
+    private bool IsValidItem(Item item) {
+      return item.IsActive &&
+             item.CreatedAt > cutoffDate &&
+             item.Status == Status.Approved;
+    }
+
+linq:
+  enforcement: SHOULD
+  value: "Prefer single line or imperative code for complex logic"
+  good: |
+    var names = users.Select(u => u.Name).ToList();
+
+    // Imperative for complex logic
+    var results = new List<Result>();
+    foreach (var user in users) {
+      if (IsValid(user)) {
+        var result = Process(user);
+        results.Add(result);
+      }
+    }
+  bad: |
+    var results = users
+        .Where(u => u.IsActive)
+        .Where(u => u.Age > 18)
+        .Select(u => new Result(u))
+        .Where(r => r.IsValid)
+        .OrderBy(r => r.Name)
+        .ToList();
+
+named_arguments:
+  enforcement: SHOULD
+  value: "Use to clarify meaning"
+  good: |
+    CreateUser(
+        name: "John",
+        isAdmin: false,
+        sendEmail: true);
+  bad: |
+    CreateUser("John", false, true);
+
+expression_body:
+  enforcement: MAY
+  value: "Use for simple members; block body for complex logic"
+  good: |
+    public string Name => _name;
+    public int Count => _items.Count;
+
+    public override string ToString() => $"User: {Name}";
+
+    // Block body for complex logic
+    public void Process() {
+      ValidateState();
+      DoWork();
+      SaveResults();
+    }
+
+properties:
+  auto_properties:
+    enforcement: SHOULD
+    value: "Use auto-properties when appropriate"
+    good: |
+      public string Name { get; set; }
+      public int Count { get; private set; }
+
+      // Read-only
+      public string Id { get; }
+
+async_await:
+  naming:
+    enforcement: MUST
+    value: "Suffix async methods with Async"
+    good: |
+      public async Task<User> GetUserAsync(string id) {
+        return await _repository.FindAsync(id);
+      }
+
+comments:
+  xml_documentation:
+    enforcement: SHOULD
+    value: "Use XML documentation for public APIs"
+    good: |
+      /// <summary>
+      /// Retrieves a user by their unique identifier.
+      /// </summary>
+      /// <param name="id">The unique user identifier.</param>
+      /// <returns>The user if found; otherwise, null.</returns>
+      public User GetUser(string id) {
+        // Implementation
+      }
+
+checklist:
+  enforcement: MUST
+  value:
+    - "PascalCase for public members"
+    - "camelCase for locals and parameters"
+    - "_camelCase for private fields"
+    - "IPascalCase for interfaces"
+    - "2-space indentation"
+    - "100 character line limit"
+    - "K&R brace style (same line)"
+    - "Braces always required"
+    - "System usings first"
+    - "Use const when possible"
+    - "Use var when type is obvious"
+    - "Keep lambdas simple"
+    - "Prefer simple LINQ or imperative code"
+    - "Use named arguments for clarity"

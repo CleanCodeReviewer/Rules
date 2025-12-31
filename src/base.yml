@@ -1,0 +1,318 @@
+# Clean Code Principles
+# Source: Internet compilation of best practices from various code style guide resources.
+
+_meta:
+  name: base
+  tags: [general, clean-code]
+  source: "Internet compilation of best practices from various code style guide resources."
+
+naming:
+  intention_revealing:
+    enforcement: MUST
+    value: "Names should tell you why it exists, what it does, and how it is used"
+    good: |
+      SECONDS_PER_DAY = 86400
+      active_users = get_active_users()
+    bad: |
+      d = 86400
+      lst = get_them()
+
+  avoid_disinformation:
+    enforcement: MUST
+    value: "Don't use names that could mislead"
+    good: |
+      accounts = {}
+      account_mapping = {}
+    bad: |
+      accountList = {}  # not actually a list
+
+  meaningful_distinctions:
+    enforcement: MUST
+    value: "Names should have clear differences that convey meaning"
+    good: |
+      get_account_by_id()
+      get_account_balance()
+      get_account_transactions()
+    bad: |
+      get_account()
+      get_account_info()
+      get_account_data()
+
+  pronounceable:
+    enforcement: SHOULD
+    value: "Use names that can be pronounced"
+
+  searchable:
+    enforcement: SHOULD
+    value: "Single-letter names should only be used as local variables in short methods"
+    good: |
+      for task_index in range(NUMBER_OF_TASKS):
+          real_days += task_days[task_index] * WORK_DAYS_PER_WEEK / DAYS_PER_WEEK
+    bad: |
+      for i in range(34):
+          s += t[i] * 4 / 5
+
+  class_names:
+    enforcement: MUST
+    value: "nouns (e.g., Customer, Account, AddressParser)"
+
+  method_names:
+    enforcement: MUST
+    value: "verbs (e.g., save, delete_page, post_payment)"
+
+functions:
+  max_lines:
+    enforcement: SHOULD
+    value: 20
+
+  single_responsibility:
+    enforcement: MUST
+    value: "Functions should do one thing, do it well, and do it only"
+    good: |
+      def register_user(user):
+          validated_user = validate_user(user)
+          secure_user = secure_credentials(validated_user)
+          saved_user = persist_user(secure_user)
+          notify_user(saved_user)
+          return saved_user
+    bad: |
+      def process_user(user):
+          validate_email(user.email)
+          hash_password(user.password)
+          save_to_database(user)
+          send_welcome_email(user)
+          log_registration(user)
+
+  single_abstraction_level:
+    enforcement: SHOULD
+    value: "Don't mix high-level and low-level operations in the same function"
+    good: |
+      def render_page():
+          return build_html_document(
+              build_body(get_page_content())
+          )
+    bad: |
+      def render_page():
+          html = "<html>"
+          page_content = get_page_content()
+          html += "<body>" + page_content + "</body>"
+          html += "</html>"
+          return html
+
+  max_arguments:
+    enforcement: SHOULD
+    value: 3
+
+  arguments_rationale:
+    enforcement: SHOULD
+    value: "Zero is ideal, one is good, two is acceptable, three requires justification"
+
+  no_side_effects:
+    enforcement: MUST
+    value: "Functions should not have hidden side effects"
+    good: |
+      def check_password(username, password) -> bool:
+          user = find_user(username)
+          return user.password == hash(password)
+
+      def login(username, password):
+          if check_password(username, password):
+              Session.initialize()
+              return True
+          return False
+    bad: |
+      def check_password(username, password):
+          user = find_user(username)
+          if user.password == hash(password):
+              Session.initialize()  # Hidden side effect!
+              return True
+          return False
+
+  command_query_separation:
+    enforcement: SHOULD
+    value: "Functions should either DO something or ANSWER something, not both"
+    good: |
+      def has_attribute(name) -> bool:
+          return name in self.attributes
+
+      def set_attribute(name, value) -> None:
+          self.attributes[name] = value
+    bad: |
+      def set_attribute(name, value):
+          if name in self.attributes:
+              self.attributes[name] = value
+              return True
+          return False
+
+  dry:
+    enforcement: MUST
+    value: "Don't repeat yourself - duplication is the root of all evil in software"
+
+comments:
+  purpose:
+    enforcement: MUST
+    value: "Explain WHY, not WHAT"
+
+  prefer_self_documenting:
+    enforcement: SHOULD
+    value: "If you need a comment to explain code, first try to improve the code"
+    good: |
+      if employee.is_eligible_for_benefits():
+          ...
+    bad: |
+      # Check if employee is eligible for benefits
+      if employee.flags & HOURLY_FLAG and employee.age > 65:
+          ...
+
+  good_comments:
+    enforcement: MAY
+    value:
+      - "Legal comments (copyright, license)"
+      - "Informative comments (regex explanation)"
+      - "Explanation of intent"
+      - "Warning of consequences"
+      - "TODO comments (temporarily)"
+      - "Documentation for public APIs"
+
+  bad_comments:
+    enforcement: MUST_NOT
+    value:
+      - "Redundant comments that repeat the code"
+      - "Misleading comments"
+      - "Mandated comments (javadoc for every function)"
+      - "Journal comments (use version control)"
+      - "Noise comments"
+      - "Commented-out code (delete it!)"
+
+formatting:
+  max_file_lines:
+    enforcement: SHOULD
+    value: 500
+
+  ideal_file_lines:
+    enforcement: SHOULD
+    value: "200-500 lines"
+
+  max_line_length:
+    enforcement: SHOULD
+    value: 120
+
+  vertical:
+    enforcement: SHOULD
+    value:
+      - "Separate concepts with blank lines"
+      - "Related code should be vertically close"
+      - "Caller should be above callee"
+
+  horizontal:
+    enforcement: SHOULD
+    value:
+      - "Keep lines short (80-120 characters)"
+      - "Use horizontal whitespace to associate related things"
+
+error_handling:
+  use_exceptions:
+    enforcement: SHOULD
+    value: "Use exceptions rather than return codes"
+    good: |
+      def delete_page(page):
+          page.ensure_deletable()
+          registry.delete(page)
+          page.notify_watchers()
+    bad: |
+      def delete_page(page):
+          if page.is_deletable():
+              if registry.delete(page) == OK:
+                  if page.notify_watchers() == OK:
+                      return OK
+                  else:
+                      return NOTIFICATION_ERROR
+              else:
+                  return DELETE_ERROR
+          return NOT_DELETABLE
+
+  dont_return_null:
+    enforcement: SHOULD
+    value: "Return empty collections instead of null"
+    good: |
+      def get_employees():
+          if no_employees:
+              return []
+      # Caller can iterate safely: for emp in get_employees()
+    bad: |
+      def get_employees():
+          if no_employees:
+              return None
+      # Caller must check: if employees is not None
+
+  dont_pass_null:
+    enforcement: SHOULD_NOT
+    value: "Avoid passing null as function arguments"
+
+classes:
+  measure_by_responsibilities:
+    enforcement: SHOULD
+    value: "Classes should be small, measured in responsibilities, not lines"
+
+  single_responsibility:
+    enforcement: MUST
+    value: "A class should have one, and only one, reason to change"
+    good: |
+      class Employee:
+          def __init__(self, name, hourly_rate): ...
+
+      class PayrollCalculator:
+          def calculate_pay(self, employee): ...
+
+      class EmployeeRepository:
+          def save(self, employee): ...
+    bad: |
+      class Employee:
+          def calculate_pay(self): ...
+          def save(self): ...
+          def generate_report(self): ...
+
+  open_closed:
+    enforcement: SHOULD
+    value: "Classes should be open for extension but closed for modification"
+
+  dependency_inversion:
+    enforcement: SHOULD
+    value: "Depend on abstractions, not concretions"
+    good: |
+      class ReportGenerator:
+          def __init__(self, database: Database):
+              self.database = database
+    bad: |
+      class ReportGenerator:
+          def __init__(self):
+              self.database = MySQLDatabase()
+
+testing:
+  fast:
+    enforcement: MUST
+    value: "Tests should run quickly"
+
+  independent:
+    enforcement: MUST
+    value: "Tests should not depend on each other"
+
+  repeatable:
+    enforcement: MUST
+    value: "Tests should work in any environment"
+
+  self_validating:
+    enforcement: MUST
+    value: "Tests should have boolean output (pass/fail)"
+
+  timely:
+    enforcement: SHOULD
+    value: "Tests should be written just before production code"
+
+  one_concept_per_test:
+    enforcement: SHOULD
+    value: "Each test should test one concept"
+
+  clean_tests:
+    enforcement: MUST
+    value: "Test code is just as important as production code"

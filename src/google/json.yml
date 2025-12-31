@@ -1,0 +1,225 @@
+# Google JSON Style Guide
+# Source: https://google.github.io/styleguide/jsoncstyleguide.xml
+
+_meta:
+  name: google-json
+  language: json
+  tags: [style, google, api]
+  source: "https://google.github.io/styleguide/jsoncstyleguide.xml"
+
+naming:
+  property_names:
+    enforcement: MUST
+    value: lowerCamelCase
+
+  valid_characters:
+    enforcement: MUST
+    value:
+      - "Start with letter, underscore, or dollar sign"
+      - "Subsequent: letters, digits, underscores, dollar signs"
+      - "ASCII only"
+
+  singular_vs_plural:
+    enforcement: SHOULD
+    value: "Arrays use plural names; other properties use singular"
+    good: |
+      {
+        "user": {"name": "John"},
+        "items": [{"id": 1}, {"id": 2}],
+        "totalCount": 2
+      }
+
+data_types:
+  allowed:
+    enforcement: MUST
+    value:
+      - booleans
+      - numbers
+      - strings
+      - objects
+      - arrays
+      - "null"
+
+  avoid:
+    enforcement: MUST_NOT
+    value:
+      - "JavaScript expressions"
+      - "Functions"
+      - "Undefined"
+
+strings:
+  dates:
+    enforcement: MUST
+    value: "Use RFC 3339 format"
+    good: |
+      {
+        "createdAt": "2024-01-15T14:30:00Z",
+        "updatedAt": "2024-01-15T14:30:00.123Z",
+        "expiresAt": "2024-12-31T23:59:59+00:00"
+      }
+
+  durations:
+    enforcement: SHOULD
+    value: "Use ISO 8601 format"
+    good: |
+      {
+        "timeout": "PT30S",
+        "maxAge": "P1D",
+        "period": "P1Y2M3DT4H5M6S"
+      }
+
+  coordinates:
+    enforcement: SHOULD
+    value: "Use ISO 6709 format"
+    good: |
+      {
+        "location": "+40.6894-074.0447"
+      }
+
+enumerations:
+  enforcement: SHOULD
+  value: "Use strings for extensibility"
+  good: |
+    {
+      "status": "active",
+      "priority": "high",
+      "type": "user"
+    }
+  bad: |
+    {
+      "status": 1,
+      "priority": 3
+    }
+
+empty_null_values:
+  omit_when_not_meaningful:
+    enforcement: SHOULD
+    value: "Omit empty/null values unless semantically significant"
+    good: |
+      {
+        "name": "John",
+        "email": "john@example.com"
+      }
+    bad: |
+      {
+        "name": "John",
+        "email": "john@example.com",
+        "phone": null,
+        "address": "",
+        "tags": []
+      }
+
+  include_when_significant:
+    enforcement: MAY
+    value: "Include null/zero values when semantically meaningful"
+    good: |
+      {
+        "balance": 0,
+        "previousOwner": null
+      }
+
+response_structure:
+  standard_properties:
+    enforcement: SHOULD
+    value: "Include standard API response properties"
+    good: |
+      {
+        "apiVersion": "1.0",
+        "context": "request-123",
+        "id": "abc-def-ghi",
+        "data": {
+          "kind": "user",
+          "items": []
+        }
+      }
+
+  error_response:
+    enforcement: MUST
+    value: "Use standard error response structure"
+    good: |
+      {
+        "apiVersion": "1.0",
+        "error": {
+          "code": 404,
+          "message": "User not found",
+          "errors": [
+            {
+              "domain": "users",
+              "reason": "notFound",
+              "message": "User with id 123 not found"
+            }
+          ]
+        }
+      }
+
+  data_error_exclusive:
+    enforcement: MUST
+    value: "Never include both data and error in the same response"
+
+pagination:
+  enforcement: SHOULD
+  value: "Use standard pagination properties for collections"
+  good: |
+    {
+      "data": {
+        "kind": "userList",
+        "items": [],
+        "currentItemCount": 10,
+        "itemsPerPage": 10,
+        "startIndex": 1,
+        "totalItems": 100,
+        "pageIndex": 1,
+        "totalPages": 10,
+        "nextLink": "https://api.example.com/users?page=2",
+        "previousLink": null,
+        "selfLink": "https://api.example.com/users?page=1"
+      }
+    }
+
+reserved_properties:
+  data_object:
+    enforcement: SHOULD
+    value:
+      - "kind: Type identifier (first)"
+      - "fields: Partial response fields"
+      - "etag: Version identifier"
+      - "id: Object identifier"
+      - "lang: Language (BCP 47)"
+      - "updated: Last modified (RFC 3339)"
+      - "deleted: Deletion flag"
+      - "items: Collection array (last)"
+
+  property_order:
+    enforcement: SHOULD
+    value: "kind first, items last"
+
+structure:
+  flatten_when_possible:
+    enforcement: MAY
+    value: "Flatten structure when no semantic grouping is needed"
+    good: |
+      {
+        "userName": "john",
+        "userEmail": "john@example.com",
+        "userAge": 30
+      }
+
+  nest_for_semantic_groups:
+    enforcement: SHOULD
+    value: "Use nested objects for semantically related data"
+    good: |
+      {
+        "user": {
+          "name": "john",
+          "email": "john@example.com"
+        },
+        "address": {
+          "street": "123 Main St",
+          "city": "Springfield",
+          "country": "US"
+        }
+      }
+
+comments:
+  enforcement: MUST_NOT
+  value: "Never include comments in JSON; comments belong only in documentation"

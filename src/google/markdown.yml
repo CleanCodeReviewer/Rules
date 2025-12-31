@@ -1,0 +1,251 @@
+# Google Markdown Style Guide
+# Source: https://google.github.io/styleguide/docguide/style.html
+
+_meta:
+  name: google-markdown
+  language: markdown
+  tags: [style, google, documentation]
+  source: "https://google.github.io/styleguide/docguide/style.html"
+
+document_layout:
+  structure:
+    enforcement: SHOULD
+    value:
+      - "H1 title (matches filename)"
+      - "Brief introduction (1-3 sentences)"
+      - "[TOC] directive"
+      - "H2+ sections"
+      - "See also section (optional)"
+
+  example:
+    enforcement: SHOULD
+    value: "Follow the standard document layout"
+    good: |
+      # Document Title
+
+      Brief description of what this document covers.
+
+      [TOC]
+
+      ## First Section
+
+      Content here.
+
+      ## See Also
+
+      - [Related Document](related.md)
+
+headings:
+  style:
+    enforcement: MUST
+    value: "Use ATX style (# markers), not underlines"
+    good: |
+      # Heading 1
+
+      ## Heading 2
+
+      ### Heading 3
+    bad: |
+      Heading 1
+      =========
+
+      Heading 2
+      ---------
+
+  one_h1_per_document:
+    enforcement: MUST
+    value: true
+
+  spacing:
+    enforcement: MUST
+    value: "Blank lines before and after headings"
+    good: |
+      Some paragraph text.
+
+      ## New Section
+
+      More text here.
+
+  unique_names:
+    enforcement: SHOULD
+    value: "Use descriptive, unique heading names for anchor links"
+
+formatting:
+  max_line_length:
+    enforcement: SHOULD
+    value: 80
+
+  line_length_exceptions:
+    enforcement: MAY
+    value:
+      - URLs
+      - Tables
+      - Headings
+      - "Code blocks"
+
+lists:
+  lazy_numbering:
+    enforcement: MAY
+    value: "For long lists that may change"
+    good: |
+      1. First item
+      1. Second item
+      1. Third item
+      1. Fourth item
+
+  explicit_numbering:
+    enforcement: MAY
+    value: "For short, stable lists"
+    good: |
+      1. First
+      2. Second
+      3. Third
+
+  nested_indent:
+    enforcement: MUST
+    value: "4 spaces"
+
+  nested_example:
+    enforcement: MUST
+    value: "Indent nested lists by 4 spaces"
+    good: |
+      1. First item
+          - Nested bullet
+          - Another bullet
+      1. Second item
+          1. Nested number
+          1. Another number
+
+code:
+  inline:
+    enforcement: MUST
+    value: "Use backticks for inline code"
+    good: |
+      Use the `print()` function to output text.
+
+  code_blocks:
+    enforcement: MUST
+    value: "Use fenced code blocks with language specified"
+    good: |
+      ```python
+      def hello():
+          print("Hello, world!")
+      ```
+
+  command_line:
+    enforcement: SHOULD
+    value: "Use backslash for line continuation"
+    good: |
+      ```bash
+      ./configure \
+          --prefix=/usr/local \
+          --enable-feature
+      ```
+
+  code_in_lists:
+    enforcement: MUST
+    value: "Indent appropriately within lists"
+
+links:
+  inline:
+    enforcement: MAY
+    value: "Use inline links for short URLs"
+    good: |
+      See [the documentation](docs/guide.md) for details.
+
+  reference:
+    enforcement: SHOULD
+    value: "For long URLs that disrupt readability"
+    good: |
+      See [the documentation][docs] for more information.
+
+      [docs]: https://example.com/very/long/path/to/documentation
+
+  link_text:
+    enforcement: MUST
+    value: "Write naturally, avoid generic text"
+    good: |
+      See the [installation guide](install.md) for setup instructions.
+    bad: |
+      For setup instructions, click [here](install.md).
+
+  internal_links:
+    enforcement: MUST
+    value: "Use relative paths"
+    good: |
+      See [Configuration](config.md)
+      See [API Reference](../api/reference.md)
+    bad: |
+      See [Configuration](/docs/config.md)
+
+images:
+  alt_text_required:
+    enforcement: MUST
+    value: true
+
+  example:
+    enforcement: MUST
+    value: "Always include descriptive alt text"
+    good: |
+      ![Alt text describing the image](path/to/image.png)
+
+  with_reference:
+    enforcement: MAY
+    value: "Use reference-style for images with long paths"
+    good: |
+      ![Architecture diagram][arch]
+
+      [arch]: images/architecture.png
+
+tables:
+  enforcement: SHOULD
+  value: "Keep simple; use alignment"
+  good: |
+    | Name    | Type   | Description          |
+    |---------|--------|----------------------|
+    | id      | string | Unique identifier    |
+    | name    | string | Display name         |
+    | active  | bool   | Whether item active  |
+
+emphasis:
+  bold:
+    enforcement: SHOULD
+    value: "For strong emphasis"
+    good: |
+      **Important:** Do not skip this step.
+
+  italic:
+    enforcement: SHOULD
+    value: "For terms or light emphasis"
+    good: |
+      This is called a *widget*.
+
+  avoid_combining:
+    enforcement: SHOULD
+    value: true
+
+best_practices:
+  prefer_markdown_over_html:
+    enforcement: MUST
+    value: "Use Markdown syntax instead of HTML"
+    good: |
+      **Bold text**
+    bad: |
+      <strong>Bold text</strong>
+
+  reference_links_after_first_use:
+    enforcement: SHOULD
+    value: true
+
+  blank_lines:
+    enforcement: MUST
+    value: "Use single blank lines between blocks"
+    good: |
+      First paragraph.
+
+      Second paragraph.
+
+      - List item 1
+      - List item 2
+
+      Another paragraph.

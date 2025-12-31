@@ -1,0 +1,300 @@
+# Google HTML/CSS Style Guide
+# Source: https://google.github.io/styleguide/htmlcssguide.html
+
+_meta:
+  name: google-html-css
+  language: html
+  tags: [style, google, css]
+  source: "https://google.github.io/styleguide/htmlcssguide.html"
+
+general:
+  indentation:
+    enforcement: MUST
+    value: "2 spaces, never tabs"
+  capitalization:
+    enforcement: MUST
+    value: "All lowercase for HTML elements, attributes, CSS selectors, and properties"
+  encoding:
+    enforcement: MUST
+    value: "UTF-8 without BOM"
+  trailing_whitespace:
+    enforcement: MUST
+    value: "Remove all trailing whitespace"
+
+html:
+  doctype:
+    enforcement: MUST
+    value: "Always use HTML5 doctype"
+    good: |
+      <!doctype html>
+
+  semantic_markup:
+    enforcement: SHOULD
+    value: "Use elements for their intended purpose"
+    good: |
+      <article>
+        <h1>Title</h1>
+        <p>Paragraph content.</p>
+        <nav>
+          <a href="/home">Home</a>
+        </nav>
+      </article>
+    bad: |
+      <div class="article">
+        <div class="title">Title</div>
+        <div class="paragraph">Paragraph content.</div>
+      </div>
+
+  multimedia_fallback:
+    enforcement: MUST
+    value: "Provide alt text for images"
+    good: |
+      <img src="photo.jpg" alt="Profile photo of John Doe">
+
+  separation_of_concerns:
+    enforcement: SHOULD
+    value: "Keep structure (HTML), presentation (CSS), and behavior (JS) separate"
+    good: |
+      <link rel="stylesheet" href="styles.css">
+    bad: |
+      <p style="color: red; font-size: 14px;">Text</p>
+
+  entity_references:
+    enforcement: SHOULD
+    value: "Use UTF-8 characters directly"
+    good: |
+      <p>The cost is €50 — quite reasonable.</p>
+    bad: |
+      <p>The cost is &euro;50 &mdash; quite reasonable.</p>
+
+  type_attributes:
+    enforcement: SHOULD
+    value: "Omit type attributes for stylesheets and scripts (HTML5 default)"
+    good: |
+      <link rel="stylesheet" href="styles.css">
+      <script src="app.js"></script>
+    bad: |
+      <link rel="stylesheet" href="styles.css" type="text/css">
+      <script src="app.js" type="text/javascript"></script>
+
+  id_attributes:
+    enforcement: SHOULD
+    value: "Use hyphens in IDs; avoid unnecessary IDs"
+    good: |
+      <div id="user-profile">...</div>
+    bad: |
+      <div id="userProfile">...</div>
+
+html_formatting:
+  block_elements:
+    enforcement: SHOULD
+    value: "New line for block elements; indent children"
+    good: |
+      <article>
+        <header>
+          <h1>Title</h1>
+        </header>
+        <p>Content here.</p>
+      </article>
+
+  quotation_marks:
+    enforcement: MUST
+    value: "Double quotes for attribute values"
+    good: |
+      <input type="text" name="email">
+    bad: |
+      <input type='text' name='email'>
+
+css:
+  validity:
+    enforcement: SHOULD
+    value: "Use valid CSS; test with W3C validator"
+
+  class_naming:
+    enforcement: SHOULD
+    value: "Meaningful names reflecting purpose; hyphen-separated"
+    good: |
+      .nav-primary { }
+      .btn-submit { }
+      .error-message { }
+    bad: |
+      /* Presentational names */
+      .red { }
+      .left { }
+      .big-text { }
+
+      /* camelCase or underscores */
+      .navPrimary { }
+      .nav_primary { }
+
+  class_name_length:
+    enforcement: SHOULD
+    value: "Short as possible, long as necessary"
+    good: |
+      .nav { }
+      .author { }
+    bad: |
+      /* Too abbreviated */
+      .n { }
+      .atr { }
+
+      /* Too long */
+      .navigation-primary-main { }
+
+  avoid_type_selectors:
+    enforcement: SHOULD_NOT
+    value: "Don't qualify class selectors with element names"
+    good: |
+      .error { }
+    bad: |
+      div.error { }
+      ul.nav { }
+
+  avoid_id_selectors:
+    enforcement: SHOULD
+    value: "Prefer classes for styling"
+    good: |
+      .header { }
+    bad: |
+      #header { }
+
+  shorthand_properties:
+    enforcement: SHOULD
+    value: "Use shorthand when possible"
+    good: |
+      padding: 10px 20px;
+      margin: 0;
+      font: 16px/1.5 Arial, sans-serif;
+    bad: |
+      padding-top: 10px;
+      padding-right: 20px;
+      padding-bottom: 10px;
+      padding-left: 20px;
+
+  zero_values:
+    enforcement: SHOULD
+    value: "Omit units for zero values"
+    good: |
+      margin: 0;
+      padding: 0;
+    bad: |
+      margin: 0px;
+      padding: 0em;
+
+  leading_zeros:
+    enforcement: SHOULD
+    value: "Include leading zeros"
+    good: |
+      font-size: 0.8em;
+      opacity: 0.5;
+    bad: |
+      font-size: .8em;
+      opacity: .5;
+
+  hex_colors:
+    enforcement: SHOULD
+    value: "Use 3-character hex when possible"
+    good: |
+      color: #ebc;
+    bad: |
+      color: #eebbcc;
+
+css_formatting:
+  declaration_order:
+    enforcement: SHOULD
+    value: "Alphabetical within blocks"
+
+  declaration_order_example:
+    enforcement: SHOULD
+    value: "Order declarations alphabetically"
+    good: |
+      .selector {
+        background: #fff;
+        border: 1px solid #ccc;
+        color: #333;
+        display: block;
+        font-size: 16px;
+        margin: 10px;
+        padding: 20px;
+      }
+
+  block_indentation:
+    enforcement: MUST
+    value: "Indent all block content"
+    good: |
+      @media screen {
+        .selector {
+          color: blue;
+        }
+      }
+
+  semicolons:
+    enforcement: MUST
+    value: "End every declaration with a semicolon"
+    good: |
+      .selector {
+        color: red;
+        font-size: 16px;
+      }
+    bad: |
+      .selector {
+        color: red;
+        font-size: 16px
+      }
+
+  property_spacing:
+    enforcement: MUST
+    value: "Space after colon, not before"
+    good: |
+      font-weight: bold;
+    bad: |
+      font-weight:bold;
+      font-weight : bold;
+
+  selector_spacing:
+    enforcement: MUST
+    value: "Space before opening brace; new line after"
+    good: |
+      .selector {
+        color: blue;
+      }
+    bad: |
+      .selector{
+        color: blue;
+      }
+
+  separate_selectors:
+    enforcement: SHOULD
+    value: "Each selector on new line"
+    good: |
+      h1,
+      h2,
+      h3 {
+        font-weight: bold;
+      }
+    bad: |
+      h1, h2, h3 {
+        font-weight: bold;
+      }
+
+  rule_separation:
+    enforcement: SHOULD
+    value: "Blank line between rules"
+    good: |
+      .header {
+        background: #fff;
+      }
+
+      .nav {
+        margin: 0;
+      }
+
+  quotation_marks:
+    enforcement: SHOULD
+    value: "Single quotes for property values; avoid quotes in url() when possible"
+    good: |
+      font-family: 'Open Sans', Arial, sans-serif;
+      background: url('image.png');
+
+      /* Preferred - no quotes in url() */
+      background: url(image.png);

@@ -1,0 +1,2150 @@
+# Microsoft .NET Analyzers
+# Source: https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/
+# Combined quality rules (CA) and style rules (IDE)
+
+_meta:
+  name: microsoft-dotnet-analyzers
+  language: csharp
+  tags: [style, microsoft, dotnet, analyzers, roslyn]
+  source: "https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/"
+
+# =============================================================================
+# DESIGN RULES (CA1000-CA1070)
+# =============================================================================
+
+design:
+  CA1000:
+    enforcement: SHOULD
+    value: "Do not declare static members on generic types"
+    bad: |
+      public class MyClass<T>
+      {
+          public static void StaticMethod() { }  // Hard to call: MyClass<int>.StaticMethod()
+      }
+
+  CA1001:
+    enforcement: MUST
+    value: "Types that own disposable fields should be disposable"
+    good: |
+      public class ResourceHolder : IDisposable
+      {
+          private readonly Stream _stream = new MemoryStream();
+
+          public void Dispose()
+          {
+              _stream.Dispose();
+          }
+      }
+
+  CA1002:
+    enforcement: SHOULD
+    value: "Do not expose generic lists - use IList<T>, ICollection<T>, or IEnumerable<T>"
+    good: |
+      public IList<string> GetItems() => new List<string>();
+    bad: |
+      public List<string> GetItems() => new List<string>();
+
+  CA1003:
+    enforcement: SHOULD
+    value: "Use generic event handler instances"
+    good: |
+      public event EventHandler<MyEventArgs> MyEvent;
+
+  CA1005:
+    enforcement: SHOULD
+    value: "Avoid excessive parameters on generic types (max 2 type parameters)"
+
+  CA1008:
+    enforcement: SHOULD
+    value: "Enums should have zero value named 'None' or 'Unknown'"
+    good: |
+      public enum Status
+      {
+          None = 0,
+          Active = 1,
+          Inactive = 2
+      }
+
+  CA1010:
+    enforcement: SHOULD
+    value: "Collections should implement generic interface"
+    good: |
+      public class MyCollection : ICollection<int> { }
+
+  CA1012:
+    enforcement: SHOULD
+    value: "Abstract types should not have public constructors"
+    good: |
+      public abstract class Base
+      {
+          protected Base() { }
+      }
+
+  CA1018:
+    enforcement: MUST
+    value: "Mark attributes with AttributeUsageAttribute"
+    good: |
+      [AttributeUsage(AttributeTargets.Class)]
+      public class MyAttribute : Attribute { }
+
+  CA1019:
+    enforcement: SHOULD
+    value: "Define accessors for attribute arguments"
+
+  CA1021:
+    enforcement: SHOULD
+    value: "Avoid out parameters - prefer returning tuple or custom type"
+    good: |
+      public (bool success, int value) TryParse(string input);
+    bad: |
+      public bool TryParse(string input, out int value);
+
+  CA1024:
+    enforcement: SHOULD
+    value: "Use properties where appropriate instead of Get methods"
+    good: |
+      public int Count { get; }
+    bad: |
+      public int GetCount() => _count;
+
+  CA1027:
+    enforcement: SHOULD
+    value: "Mark enums with FlagsAttribute when values can be combined"
+    good: |
+      [Flags]
+      public enum Permissions
+      {
+          None = 0,
+          Read = 1,
+          Write = 2,
+          Execute = 4
+      }
+
+  CA1028:
+    enforcement: SHOULD
+    value: "Enum storage should be Int32 unless there's a reason for other types"
+
+  CA1030:
+    enforcement: SHOULD
+    value: "Use events where appropriate instead of delegate fields"
+
+  CA1031:
+    enforcement: SHOULD
+    value: "Do not catch general exception types"
+    good: |
+      try { }
+      catch (InvalidOperationException ex) { }
+    bad: |
+      try { }
+      catch (Exception ex) { }
+
+  CA1032:
+    enforcement: SHOULD
+    value: "Implement standard exception constructors"
+    good: |
+      public class MyException : Exception
+      {
+          public MyException() { }
+          public MyException(string message) : base(message) { }
+          public MyException(string message, Exception inner) : base(message, inner) { }
+      }
+
+  CA1033:
+    enforcement: SHOULD
+    value: "Interface methods should be callable by child types"
+
+  CA1034:
+    enforcement: SHOULD
+    value: "Nested types should not be visible"
+
+  CA1036:
+    enforcement: MUST
+    value: "Override methods on comparable types (Equals, GetHashCode, operators)"
+    good: |
+      public class Point : IComparable<Point>
+      {
+          public int CompareTo(Point other) => /* ... */;
+          public override bool Equals(object obj) => /* ... */;
+          public override int GetHashCode() => /* ... */;
+          public static bool operator <(Point left, Point right) => /* ... */;
+          public static bool operator >(Point left, Point right) => /* ... */;
+      }
+
+  CA1040:
+    enforcement: SHOULD
+    value: "Avoid empty interfaces"
+
+  CA1041:
+    enforcement: MUST
+    value: "Provide ObsoleteAttribute message"
+    good: |
+      [Obsolete("Use NewMethod instead.")]
+      public void OldMethod() { }
+
+  CA1043:
+    enforcement: SHOULD
+    value: "Use integral or string argument for indexers"
+
+  CA1044:
+    enforcement: SHOULD
+    value: "Properties should not be write only"
+
+  CA1045:
+    enforcement: SHOULD
+    value: "Do not pass types by reference"
+
+  CA1046:
+    enforcement: SHOULD
+    value: "Do not overload operator equals on reference types"
+
+  CA1047:
+    enforcement: MUST
+    value: "Do not declare protected members in sealed types"
+
+  CA1050:
+    enforcement: MUST
+    value: "Declare types in namespaces"
+
+  CA1051:
+    enforcement: MUST
+    value: "Do not declare visible instance fields - use properties"
+    good: |
+      public class User
+      {
+          public string Name { get; set; }
+      }
+    bad: |
+      public class User
+      {
+          public string Name;
+      }
+
+  CA1052:
+    enforcement: SHOULD
+    value: "Static holder types should be Static (sealed + abstract in IL)"
+    good: |
+      public static class Helpers { }
+
+  CA1058:
+    enforcement: SHOULD
+    value: "Types should not extend certain base types (ApplicationException, XmlDocument)"
+
+  CA1061:
+    enforcement: MUST
+    value: "Do not hide base class methods"
+
+  CA1062:
+    enforcement: SHOULD
+    value: "Validate arguments of public methods"
+    good: |
+      public void Process(string input)
+      {
+          ArgumentNullException.ThrowIfNull(input);
+          // ...
+      }
+
+  CA1063:
+    enforcement: MUST
+    value: "Implement IDisposable correctly"
+    good: |
+      public class Resource : IDisposable
+      {
+          private bool _disposed;
+
+          public void Dispose()
+          {
+              Dispose(true);
+              GC.SuppressFinalize(this);
+          }
+
+          protected virtual void Dispose(bool disposing)
+          {
+              if (!_disposed)
+              {
+                  if (disposing)
+                  {
+                      // Dispose managed resources
+                  }
+                  _disposed = true;
+              }
+          }
+      }
+
+  CA1064:
+    enforcement: SHOULD
+    value: "Exceptions should be public"
+
+  CA1065:
+    enforcement: MUST
+    value: "Do not raise exceptions in unexpected locations (Equals, GetHashCode, ToString, Dispose)"
+
+  CA1066:
+    enforcement: SHOULD
+    value: "Implement IEquatable<T> when overriding Equals"
+
+  CA1067:
+    enforcement: MUST
+    value: "Override Equals when implementing IEquatable<T>"
+
+  CA1068:
+    enforcement: MUST
+    value: "CancellationToken parameters must come last"
+    good: |
+      public async Task ProcessAsync(string input, CancellationToken cancellationToken);
+    bad: |
+      public async Task ProcessAsync(CancellationToken cancellationToken, string input);
+
+  CA1069:
+    enforcement: MUST
+    value: "Enums should not have duplicate values"
+
+  CA1070:
+    enforcement: MUST
+    value: "Do not declare event fields as virtual"
+
+# =============================================================================
+# GLOBALIZATION RULES (CA1303-CA1311)
+# =============================================================================
+
+globalization:
+  CA1303:
+    enforcement: SHOULD
+    value: "Do not pass literals as localized parameters - use resources"
+
+  CA1304:
+    enforcement: SHOULD
+    value: "Specify CultureInfo"
+    good: |
+      string.Compare(a, b, StringComparison.OrdinalIgnoreCase);
+    bad: |
+      string.Compare(a, b);
+
+  CA1305:
+    enforcement: SHOULD
+    value: "Specify IFormatProvider"
+    good: |
+      int.Parse(s, CultureInfo.InvariantCulture);
+    bad: |
+      int.Parse(s);
+
+  CA1307:
+    enforcement: SHOULD
+    value: "Specify StringComparison for clarity"
+    good: |
+      str.Equals(other, StringComparison.Ordinal);
+
+  CA1308:
+    enforcement: SHOULD
+    value: "Normalize strings to uppercase (ToUpperInvariant)"
+    good: |
+      var normalized = input.ToUpperInvariant();
+    bad: |
+      var normalized = input.ToLowerInvariant();
+
+  CA1309:
+    enforcement: SHOULD
+    value: "Use ordinal StringComparison"
+
+  CA1310:
+    enforcement: SHOULD
+    value: "Specify StringComparison for correctness"
+
+  CA1311:
+    enforcement: SHOULD
+    value: "Specify a culture or use an invariant version"
+
+# =============================================================================
+# INTEROPERABILITY RULES (CA1401-CA1422)
+# =============================================================================
+
+interoperability:
+  CA1401:
+    enforcement: SHOULD
+    value: "P/Invokes should not be visible"
+    good: |
+      internal static partial class NativeMethods
+      {
+          [LibraryImport("kernel32.dll")]
+          internal static partial int GetCurrentProcessId();
+      }
+
+  CA1416:
+    enforcement: MUST
+    value: "Validate platform compatibility"
+    good: |
+      if (OperatingSystem.IsWindows())
+      {
+          WindowsOnlyMethod();
+      }
+
+  CA1417:
+    enforcement: MUST
+    value: "Do not use OutAttribute on string parameters for P/Invokes"
+
+  CA1418:
+    enforcement: MUST
+    value: "Use valid platform string"
+
+  CA1419:
+    enforcement: SHOULD
+    value: "Provide parameterless constructor for SafeHandle-derived types"
+
+  CA1420:
+    enforcement: SHOULD
+    value: "Property requires runtime marshalling"
+
+  CA1421:
+    enforcement: SHOULD
+    value: "Method uses runtime marshalling when disabled"
+
+  CA1422:
+    enforcement: SHOULD
+    value: "Validate platform compatibility"
+
+# =============================================================================
+# MAINTAINABILITY RULES (CA1501-CA1509)
+# =============================================================================
+
+maintainability:
+  CA1501:
+    enforcement: SHOULD
+    value: "Avoid excessive inheritance (max 5 levels)"
+
+  CA1502:
+    enforcement: SHOULD
+    value: "Avoid excessive complexity (cyclomatic complexity)"
+
+  CA1505:
+    enforcement: SHOULD
+    value: "Avoid unmaintainable code (maintainability index < 10)"
+
+  CA1506:
+    enforcement: SHOULD
+    value: "Avoid excessive class coupling"
+
+  CA1507:
+    enforcement: MUST
+    value: "Use nameof in place of string"
+    good: |
+      throw new ArgumentNullException(nameof(input));
+    bad: |
+      throw new ArgumentNullException("input");
+
+  CA1508:
+    enforcement: SHOULD
+    value: "Avoid dead conditional code"
+
+  CA1509:
+    enforcement: MUST
+    value: "Invalid entry in code metrics configuration file"
+
+# =============================================================================
+# NAMING RULES (CA1700-CA1727)
+# =============================================================================
+
+naming:
+  CA1700:
+    enforcement: MUST
+    value: "Do not name enum values 'Reserved'"
+
+  CA1707:
+    enforcement: MUST
+    value: "Identifiers should not contain underscores"
+    good: |
+      public void ProcessData() { }
+    bad: |
+      public void Process_Data() { }
+
+  CA1708:
+    enforcement: MUST
+    value: "Identifiers should differ by more than case"
+
+  CA1710:
+    enforcement: SHOULD
+    value: "Identifiers should have correct suffix (Collection, Dictionary, Queue, Stack)"
+    good: |
+      public class UserCollection : Collection<User> { }
+
+  CA1711:
+    enforcement: SHOULD
+    value: "Identifiers should not have incorrect suffix"
+
+  CA1712:
+    enforcement: SHOULD
+    value: "Do not prefix enum values with type name"
+    good: |
+      public enum Color { Red, Green, Blue }
+    bad: |
+      public enum Color { ColorRed, ColorGreen, ColorBlue }
+
+  CA1713:
+    enforcement: SHOULD
+    value: "Events should not have before or after prefix"
+
+  CA1714:
+    enforcement: SHOULD
+    value: "Flags enums should have plural names"
+    good: |
+      [Flags]
+      public enum Permissions { }
+
+  CA1715:
+    enforcement: MUST
+    value: "Identifiers should have correct prefix (I for interfaces, T for type parameters)"
+    good: |
+      public interface IService { }
+      public class MyClass<TItem> { }
+    bad: |
+      public interface Service { }
+      public class MyClass<Item> { }
+
+  CA1716:
+    enforcement: SHOULD
+    value: "Identifiers should not match keywords"
+
+  CA1717:
+    enforcement: SHOULD
+    value: "Only FlagsAttribute enums should have plural names"
+
+  CA1720:
+    enforcement: SHOULD
+    value: "Identifiers should not contain type names"
+
+  CA1721:
+    enforcement: SHOULD
+    value: "Property names should not match get methods"
+
+  CA1724:
+    enforcement: SHOULD
+    value: "Type names should not match namespaces"
+
+  CA1725:
+    enforcement: SHOULD
+    value: "Parameter names should match base declaration"
+
+  CA1727:
+    enforcement: SHOULD
+    value: "Use PascalCase for named placeholders in logging"
+    good: |
+      _logger.LogInformation("User {UserId} logged in", userId);
+    bad: |
+      _logger.LogInformation("User {userId} logged in", userId);
+
+# =============================================================================
+# PERFORMANCE RULES (CA1800-CA1877)
+# =============================================================================
+
+performance:
+  CA1802:
+    enforcement: SHOULD
+    value: "Use literals where appropriate instead of computed readonly fields"
+    good: |
+      private const int MaxSize = 100;
+    bad: |
+      private static readonly int MaxSize = 100;
+
+  CA1805:
+    enforcement: SHOULD
+    value: "Do not initialize unnecessarily (default values)"
+    good: |
+      private int _count;
+    bad: |
+      private int _count = 0;
+
+  CA1806:
+    enforcement: SHOULD
+    value: "Do not ignore method results"
+    good: |
+      var result = int.TryParse(s, out var value);
+    bad: |
+      int.TryParse(s, out var value);  // Ignoring return value
+
+  CA1810:
+    enforcement: SHOULD
+    value: "Initialize reference type static fields inline"
+    good: |
+      private static readonly List<int> Items = new();
+    bad: |
+      private static List<int> Items;
+      static MyClass() { Items = new List<int>(); }
+
+  CA1812:
+    enforcement: SHOULD
+    value: "Avoid uninstantiated internal classes"
+
+  CA1813:
+    enforcement: SHOULD
+    value: "Avoid unsealed attributes"
+    good: |
+      public sealed class MyAttribute : Attribute { }
+
+  CA1814:
+    enforcement: SHOULD
+    value: "Prefer jagged arrays over multidimensional"
+    good: |
+      int[][] jagged = new int[10][];
+    bad: |
+      int[,] multi = new int[10, 10];
+
+  CA1815:
+    enforcement: MUST
+    value: "Override equals and operator equals on value types"
+
+  CA1816:
+    enforcement: MUST
+    value: "Call GC.SuppressFinalize correctly"
+
+  CA1819:
+    enforcement: SHOULD
+    value: "Properties should not return arrays - return ReadOnlyCollection"
+    good: |
+      public IReadOnlyList<int> Items { get; }
+    bad: |
+      public int[] Items { get; }
+
+  CA1820:
+    enforcement: SHOULD
+    value: "Test for empty strings using string length or IsNullOrEmpty"
+    good: |
+      if (string.IsNullOrEmpty(s)) { }
+      if (s.Length == 0) { }
+    bad: |
+      if (s == "") { }
+
+  CA1821:
+    enforcement: MUST
+    value: "Remove empty finalizers"
+
+  CA1822:
+    enforcement: SHOULD
+    value: "Mark members as static when they don't access instance data"
+
+  CA1823:
+    enforcement: MUST
+    value: "Avoid unused private fields"
+
+  CA1825:
+    enforcement: SHOULD
+    value: "Avoid zero-length array allocations - use Array.Empty<T>()"
+    good: |
+      return Array.Empty<int>();
+    bad: |
+      return new int[0];
+
+  CA1826:
+    enforcement: SHOULD
+    value: "Use property instead of Linq Enumerable method"
+    good: |
+      var first = list[0];
+      var count = list.Count;
+    bad: |
+      var first = list.First();
+      var count = list.Count();
+
+  CA1827:
+    enforcement: SHOULD
+    value: "Do not use Count/LongCount when Any can be used"
+    good: |
+      if (list.Any()) { }
+    bad: |
+      if (list.Count() > 0) { }
+
+  CA1829:
+    enforcement: SHOULD
+    value: "Use Length/Count property instead of Enumerable.Count method"
+    good: |
+      var count = array.Length;
+    bad: |
+      var count = array.Count();
+
+  CA1830:
+    enforcement: SHOULD
+    value: "Prefer strongly-typed Append and Insert method overloads on StringBuilder"
+    good: |
+      sb.Append(42);
+    bad: |
+      sb.Append(42.ToString());
+
+  CA1831:
+    enforcement: SHOULD
+    value: "Use AsSpan instead of Range-based indexers for string when appropriate"
+
+  CA1834:
+    enforcement: SHOULD
+    value: "Use StringBuilder.Append(char) for single character strings"
+    good: |
+      sb.Append(',');
+    bad: |
+      sb.Append(",");
+
+  CA1835:
+    enforcement: SHOULD
+    value: "Prefer Memory-based overloads for ReadAsync/WriteAsync"
+
+  CA1836:
+    enforcement: SHOULD
+    value: "Prefer IsEmpty over Count when available"
+    good: |
+      if (collection.IsEmpty) { }
+    bad: |
+      if (collection.Count == 0) { }
+
+  CA1837:
+    enforcement: SHOULD
+    value: "Use Environment.ProcessId instead of Process.GetCurrentProcess().Id"
+    good: |
+      var pid = Environment.ProcessId;
+    bad: |
+      var pid = Process.GetCurrentProcess().Id;
+
+  CA1841:
+    enforcement: SHOULD
+    value: "Prefer Dictionary Contains methods"
+    good: |
+      if (dict.ContainsKey(key)) { }
+    bad: |
+      if (dict.Keys.Contains(key)) { }
+
+  CA1842:
+    enforcement: SHOULD
+    value: "Do not use WhenAll with single task"
+    good: |
+      await task;
+    bad: |
+      await Task.WhenAll(task);
+
+  CA1843:
+    enforcement: SHOULD
+    value: "Do not use WaitAll with single task"
+
+  CA1844:
+    enforcement: SHOULD
+    value: "Provide memory-based overrides of async Stream methods when subclassing Stream"
+
+  CA1845:
+    enforcement: SHOULD
+    value: "Use span-based string.Concat"
+
+  CA1846:
+    enforcement: SHOULD
+    value: "Prefer AsSpan over Substring"
+    good: |
+      ReadOnlySpan<char> span = str.AsSpan(0, 5);
+    bad: |
+      string sub = str.Substring(0, 5);
+
+  CA1847:
+    enforcement: SHOULD
+    value: "Use char literal for single character lookup"
+    good: |
+      str.IndexOf(',');
+    bad: |
+      str.IndexOf(",");
+
+  CA1848:
+    enforcement: SHOULD
+    value: "Use LoggerMessage delegates for high-performance logging"
+    good: |
+      private static readonly Action<ILogger, string, Exception?> LogUserLogin =
+          LoggerMessage.Define<string>(LogLevel.Information, new EventId(1), "User {UserId} logged in");
+
+  CA1849:
+    enforcement: SHOULD
+    value: "Call async methods when in an async method"
+    good: |
+      await stream.ReadAsync(buffer);
+    bad: |
+      stream.Read(buffer);  // In async method
+
+  CA1850:
+    enforcement: SHOULD
+    value: "Prefer static HashData method over ComputeHash"
+    good: |
+      byte[] hash = SHA256.HashData(data);
+    bad: |
+      using var sha = SHA256.Create();
+      byte[] hash = sha.ComputeHash(data);
+
+  CA1851:
+    enforcement: SHOULD
+    value: "Possible multiple enumerations of IEnumerable collection"
+    good: |
+      var list = items.ToList();
+      foreach (var item in list) { }
+      foreach (var item in list) { }
+    bad: |
+      foreach (var item in items) { }
+      foreach (var item in items) { }  // Enumerates twice
+
+  CA1852:
+    enforcement: SHOULD
+    value: "Seal internal types"
+    good: |
+      internal sealed class Helper { }
+
+  CA1853:
+    enforcement: SHOULD
+    value: "Unnecessary call to Dictionary.ContainsKey(key)"
+    good: |
+      if (dict.TryGetValue(key, out var value)) { Use(value); }
+    bad: |
+      if (dict.ContainsKey(key)) { Use(dict[key]); }
+
+  CA1854:
+    enforcement: SHOULD
+    value: "Prefer IDictionary.TryGetValue(key, out value)"
+    good: |
+      if (dict.TryGetValue(key, out var value)) { }
+    bad: |
+      if (dict.ContainsKey(key)) { var value = dict[key]; }
+
+  CA1855:
+    enforcement: SHOULD
+    value: "Use Span<T>.Clear() instead of Span<T>.Fill(default)"
+    good: |
+      span.Clear();
+    bad: |
+      span.Fill(default);
+
+  CA1858:
+    enforcement: SHOULD
+    value: "Use StartsWith instead of IndexOf"
+    good: |
+      if (str.StartsWith("prefix")) { }
+    bad: |
+      if (str.IndexOf("prefix") == 0) { }
+
+  CA1859:
+    enforcement: SHOULD
+    value: "Use concrete types when possible for improved performance"
+
+  CA1860:
+    enforcement: SHOULD
+    value: "Avoid using Enumerable.Any() extension method - use Count/Length"
+    good: |
+      if (list.Count > 0) { }
+    bad: |
+      if (list.Any()) { }  // For ICollection types
+
+  CA1861:
+    enforcement: SHOULD
+    value: "Avoid constant arrays as arguments - cache in static readonly field"
+    good: |
+      private static readonly string[] Separators = { ",", ";" };
+      str.Split(Separators);
+    bad: |
+      str.Split(new[] { ",", ";" });
+
+  CA1862:
+    enforcement: SHOULD
+    value: "Use StringComparison method overloads for case-insensitive comparisons"
+    good: |
+      str.Equals(other, StringComparison.OrdinalIgnoreCase);
+    bad: |
+      str.ToLower() == other.ToLower();
+
+  CA1864:
+    enforcement: SHOULD
+    value: "Prefer IDictionary.TryAdd(key, value)"
+    good: |
+      dict.TryAdd(key, value);
+    bad: |
+      if (!dict.ContainsKey(key)) { dict.Add(key, value); }
+
+  CA1868:
+    enforcement: SHOULD
+    value: "Unnecessary call to Contains for sets"
+    good: |
+      set.Add(item);  // Add returns false if already present
+    bad: |
+      if (!set.Contains(item)) { set.Add(item); }
+
+  CA1869:
+    enforcement: SHOULD
+    value: "Cache and reuse JsonSerializerOptions instances"
+    good: |
+      private static readonly JsonSerializerOptions Options = new() { WriteIndented = true };
+    bad: |
+      JsonSerializer.Serialize(obj, new JsonSerializerOptions { WriteIndented = true });
+
+  CA1870:
+    enforcement: SHOULD
+    value: "Use a cached SearchValues instance"
+
+  CA1872:
+    enforcement: SHOULD
+    value: "Prefer Convert.ToHexString and Convert.ToHexStringLower over BitConverter"
+    good: |
+      string hex = Convert.ToHexString(bytes);
+    bad: |
+      string hex = BitConverter.ToString(bytes).Replace("-", "");
+
+  CA1877:
+    enforcement: SHOULD
+    value: "Collapse nested Path.Combine/Path.Join calls"
+    good: |
+      var path = Path.Combine(root, folder, file);
+    bad: |
+      var path = Path.Combine(Path.Combine(root, folder), file);
+
+# =============================================================================
+# RELIABILITY RULES (CA2000-CA2026)
+# =============================================================================
+
+reliability:
+  CA2000:
+    enforcement: MUST
+    value: "Dispose objects before losing scope"
+    good: |
+      using var stream = new FileStream(path, FileMode.Open);
+    bad: |
+      var stream = new FileStream(path, FileMode.Open);
+      // stream never disposed
+
+  CA2002:
+    enforcement: MUST
+    value: "Do not lock on objects with weak identity"
+    good: |
+      private readonly object _lock = new();
+      lock (_lock) { }
+    bad: |
+      lock (typeof(MyClass)) { }
+      lock ("literal") { }
+
+  CA2007:
+    enforcement: SHOULD
+    value: "Consider calling ConfigureAwait on awaited task (library code)"
+    good: |
+      await task.ConfigureAwait(false);
+
+  CA2008:
+    enforcement: SHOULD
+    value: "Do not create tasks without passing a TaskScheduler"
+
+  CA2009:
+    enforcement: SHOULD
+    value: "Do not call ToImmutableCollection on an ImmutableCollection value"
+
+  CA2011:
+    enforcement: MUST
+    value: "Do not assign property within its setter"
+    bad: |
+      public int Value
+      {
+          set { Value = value; }  // Infinite recursion
+      }
+
+  CA2012:
+    enforcement: MUST
+    value: "Use ValueTasks correctly - don't await multiple times"
+
+  CA2013:
+    enforcement: MUST
+    value: "Do not use ReferenceEquals with value types"
+    bad: |
+      ReferenceEquals(1, 1);  // Always false for value types
+
+  CA2014:
+    enforcement: MUST
+    value: "Do not use stackalloc in loops"
+    bad: |
+      for (int i = 0; i < 100; i++)
+      {
+          Span<byte> buffer = stackalloc byte[1024];  // Stack overflow
+      }
+
+  CA2015:
+    enforcement: MUST
+    value: "Do not define finalizers for types derived from MemoryManager<T>"
+
+  CA2016:
+    enforcement: SHOULD
+    value: "Forward the CancellationToken parameter to methods that take one"
+    good: |
+      async Task ProcessAsync(CancellationToken ct)
+      {
+          await DoWorkAsync(ct);
+      }
+    bad: |
+      async Task ProcessAsync(CancellationToken ct)
+      {
+          await DoWorkAsync();  // CancellationToken not forwarded
+      }
+
+  CA2017:
+    enforcement: MUST
+    value: "Parameter count mismatch in logging message template"
+
+  CA2018:
+    enforcement: MUST
+    value: "Buffer.BlockCopy count argument should specify number of bytes to copy"
+
+  CA2019:
+    enforcement: MUST
+    value: "ThreadStatic fields should not use inline initialization"
+    good: |
+      [ThreadStatic]
+      private static int _value;
+    bad: |
+      [ThreadStatic]
+      private static int _value = 42;  // Only initialized for first thread
+
+  CA2020:
+    enforcement: SHOULD
+    value: "Prevent behavioral change caused by built-in operators of IntPtr/UIntPtr"
+
+  CA2021:
+    enforcement: MUST
+    value: "Don't call Enumerable.Cast<T> or Enumerable.OfType<T> with incompatible types"
+
+  CA2022:
+    enforcement: SHOULD
+    value: "Avoid inexact read with Stream.Read"
+
+  CA2024:
+    enforcement: SHOULD
+    value: "Do not use StreamReader.EndOfStream in async methods"
+
+  CA2025:
+    enforcement: SHOULD
+    value: "Do not pass IDisposable instances into unawaited tasks"
+
+  CA2026:
+    enforcement: SHOULD
+    value: "Prefer JsonElement.Parse over JsonDocument.Parse for non-owned data"
+
+# =============================================================================
+# SECURITY RULES (CA2100-CA5405)
+# =============================================================================
+
+security:
+  CA2100:
+    enforcement: MUST
+    value: "Review SQL queries for security vulnerabilities (SQL injection)"
+    good: |
+      command.CommandText = "SELECT * FROM Users WHERE Id = @id";
+      command.Parameters.AddWithValue("@id", userId);
+    bad: |
+      command.CommandText = $"SELECT * FROM Users WHERE Id = {userId}";
+
+  CA2109:
+    enforcement: SHOULD
+    value: "Review visible event handlers"
+
+  CA2119:
+    enforcement: SHOULD
+    value: "Seal methods that satisfy private interfaces"
+
+  CA2153:
+    enforcement: MUST_NOT
+    value: "Do not catch CorruptedStateExceptions"
+
+  CA2200:
+    enforcement: MUST
+    value: "Rethrow to preserve stack details"
+    good: |
+      catch (Exception ex)
+      {
+          Log(ex);
+          throw;
+      }
+    bad: |
+      catch (Exception ex)
+      {
+          Log(ex);
+          throw ex;  // Loses original stack trace
+      }
+
+  CA2201:
+    enforcement: SHOULD
+    value: "Do not raise reserved exception types (Exception, SystemException, ApplicationException)"
+
+  CA2207:
+    enforcement: SHOULD
+    value: "Initialize value type static fields inline"
+
+  CA2208:
+    enforcement: MUST
+    value: "Instantiate argument exceptions correctly"
+    good: |
+      throw new ArgumentNullException(nameof(input));
+      throw new ArgumentException("Message", nameof(input));
+    bad: |
+      throw new ArgumentNullException("input");  // Use nameof
+      throw new ArgumentException(nameof(input), "Message");  // Wrong order
+
+  CA2211:
+    enforcement: SHOULD
+    value: "Non-constant fields should not be visible"
+
+  CA2213:
+    enforcement: MUST
+    value: "Disposable fields should be disposed"
+
+  CA2214:
+    enforcement: SHOULD
+    value: "Do not call overridable methods in constructors"
+    bad: |
+      public Base()
+      {
+          Initialize();  // Virtual method - derived class not yet constructed
+      }
+      protected virtual void Initialize() { }
+
+  CA2215:
+    enforcement: MUST
+    value: "Dispose methods should call base class dispose"
+    good: |
+      protected override void Dispose(bool disposing)
+      {
+          // Dispose resources
+          base.Dispose(disposing);
+      }
+
+  CA2216:
+    enforcement: SHOULD
+    value: "Disposable types should declare finalizer"
+
+  CA2217:
+    enforcement: SHOULD
+    value: "Do not mark enums with FlagsAttribute incorrectly"
+
+  CA2218:
+    enforcement: MUST
+    value: "Override GetHashCode on overriding Equals"
+
+  CA2219:
+    enforcement: MUST
+    value: "Do not raise exceptions in finally clauses"
+
+  CA2225:
+    enforcement: SHOULD
+    value: "Operator overloads have named alternates"
+
+  CA2226:
+    enforcement: SHOULD
+    value: "Operators should have symmetrical overloads"
+
+  CA2227:
+    enforcement: SHOULD
+    value: "Collection properties should be read only"
+    good: |
+      public IList<string> Items { get; } = new List<string>();
+    bad: |
+      public List<string> Items { get; set; }
+
+  CA2231:
+    enforcement: SHOULD
+    value: "Overload operator equals on overriding ValueType.Equals"
+
+  CA2234:
+    enforcement: SHOULD
+    value: "Pass System.Uri objects instead of strings"
+    good: |
+      var uri = new Uri(urlString);
+      client.GetAsync(uri);
+
+  CA2241:
+    enforcement: MUST
+    value: "Provide correct arguments to formatting methods"
+
+  CA2242:
+    enforcement: MUST
+    value: "Test for NaN correctly"
+    good: |
+      if (double.IsNaN(value)) { }
+    bad: |
+      if (value == double.NaN) { }  // Always false
+
+  CA2244:
+    enforcement: MUST
+    value: "Do not duplicate indexed element initializations"
+
+  CA2245:
+    enforcement: MUST
+    value: "Do not assign a property to itself"
+
+  CA2246:
+    enforcement: MUST
+    value: "Do not assign a symbol and its member in the same statement"
+
+  CA2247:
+    enforcement: SHOULD
+    value: "Argument passed to TaskCompletionSource constructor should be TaskCreationOptions"
+
+  CA2248:
+    enforcement: MUST
+    value: "Provide correct enum argument to Enum.HasFlag"
+
+  CA2249:
+    enforcement: SHOULD
+    value: "Consider using String.Contains instead of String.IndexOf"
+    good: |
+      if (str.Contains("sub")) { }
+    bad: |
+      if (str.IndexOf("sub") >= 0) { }
+
+  CA2250:
+    enforcement: SHOULD
+    value: "Use ThrowIfCancellationRequested"
+    good: |
+      cancellationToken.ThrowIfCancellationRequested();
+    bad: |
+      if (cancellationToken.IsCancellationRequested)
+          throw new OperationCanceledException();
+
+  CA2251:
+    enforcement: SHOULD
+    value: "Use String.Equals over String.Compare"
+    good: |
+      if (string.Equals(a, b, StringComparison.OrdinalIgnoreCase)) { }
+    bad: |
+      if (string.Compare(a, b, StringComparison.OrdinalIgnoreCase) == 0) { }
+
+  CA2253:
+    enforcement: SHOULD
+    value: "Named placeholders should not be numeric values"
+    good: |
+      _logger.LogInformation("User {UserId} logged in", userId);
+    bad: |
+      _logger.LogInformation("User {0} logged in", userId);
+
+  CA2254:
+    enforcement: SHOULD
+    value: "Template should be a static expression"
+
+  CA2300:
+    enforcement: MUST_NOT
+    value: "Do not use insecure deserializer BinaryFormatter"
+
+  CA2301:
+    enforcement: MUST
+    value: "Do not call BinaryFormatter.Deserialize without first setting BinaryFormatter.Binder"
+
+  CA2302:
+    enforcement: MUST
+    value: "Ensure BinaryFormatter.Binder is set before calling BinaryFormatter.Deserialize"
+
+  CA2305:
+    enforcement: MUST_NOT
+    value: "Do not use insecure deserializer LosFormatter"
+
+  CA2310:
+    enforcement: MUST_NOT
+    value: "Do not use insecure deserializer NetDataContractSerializer"
+
+  CA2315:
+    enforcement: MUST_NOT
+    value: "Do not use insecure deserializer ObjectStateFormatter"
+
+  CA2321:
+    enforcement: MUST_NOT
+    value: "Do not deserialize with JavaScriptSerializer using a SimpleTypeResolver"
+
+  CA2326:
+    enforcement: MUST
+    value: "Do not use TypeNameHandling values other than None"
+    good: |
+      var settings = new JsonSerializerSettings
+      {
+          TypeNameHandling = TypeNameHandling.None
+      };
+    bad: |
+      var settings = new JsonSerializerSettings
+      {
+          TypeNameHandling = TypeNameHandling.All
+      };
+
+  CA2327:
+    enforcement: MUST_NOT
+    value: "Do not use insecure JsonSerializerSettings"
+
+  CA2328:
+    enforcement: MUST
+    value: "Ensure that JsonSerializerSettings are secure"
+
+  CA2329:
+    enforcement: MUST_NOT
+    value: "Do not deserialize with JsonSerializer using an insecure configuration"
+
+  CA2330:
+    enforcement: MUST
+    value: "Ensure that JsonSerializer has a secure configuration when deserializing"
+
+  CA3001:
+    enforcement: MUST
+    value: "Review code for SQL injection vulnerabilities"
+
+  CA3002:
+    enforcement: MUST
+    value: "Review code for XSS vulnerabilities"
+
+  CA3003:
+    enforcement: MUST
+    value: "Review code for file path injection vulnerabilities"
+
+  CA3004:
+    enforcement: MUST
+    value: "Review code for information disclosure vulnerabilities"
+
+  CA3005:
+    enforcement: MUST
+    value: "Review code for LDAP injection vulnerabilities"
+
+  CA3006:
+    enforcement: MUST
+    value: "Review code for process command injection vulnerabilities"
+
+  CA3007:
+    enforcement: MUST
+    value: "Review code for open redirect vulnerabilities"
+
+  CA3008:
+    enforcement: MUST
+    value: "Review code for XPath injection vulnerabilities"
+
+  CA3009:
+    enforcement: MUST
+    value: "Review code for XML injection vulnerabilities"
+
+  CA3010:
+    enforcement: MUST
+    value: "Review code for XAML injection vulnerabilities"
+
+  CA3011:
+    enforcement: MUST
+    value: "Review code for DLL injection vulnerabilities"
+
+  CA3012:
+    enforcement: MUST
+    value: "Review code for regex injection vulnerabilities"
+
+  CA3061:
+    enforcement: MUST_NOT
+    value: "Do not add schema by URL"
+
+  CA3075:
+    enforcement: MUST
+    value: "Insecure DTD processing in XML"
+
+  CA3076:
+    enforcement: MUST
+    value: "Insecure XSLT script processing"
+
+  CA3077:
+    enforcement: MUST
+    value: "Insecure Processing in API Design, XmlDocument and XmlTextReader"
+
+  CA3147:
+    enforcement: MUST
+    value: "Mark Verb Handlers With Validate Antiforgery Token"
+
+  CA5350:
+    enforcement: MUST_NOT
+    value: "Do Not Use Weak Cryptographic Algorithms (SHA1, MD5)"
+
+  CA5351:
+    enforcement: MUST_NOT
+    value: "Do Not Use Broken Cryptographic Algorithms (DES, RC2)"
+
+  CA5358:
+    enforcement: MUST_NOT
+    value: "Do Not Use Unsafe Cipher Modes (ECB)"
+
+  CA5359:
+    enforcement: MUST_NOT
+    value: "Do Not Disable Certificate Validation"
+
+  CA5360:
+    enforcement: MUST_NOT
+    value: "Do Not Call Dangerous Methods In Deserialization"
+
+  CA5361:
+    enforcement: MUST_NOT
+    value: "Do Not Disable Schannel Use of Strong Crypto"
+
+  CA5363:
+    enforcement: MUST_NOT
+    value: "Do Not Disable Request Validation"
+
+  CA5364:
+    enforcement: MUST_NOT
+    value: "Do Not Use Deprecated Security Protocols (SSL3, TLS 1.0, TLS 1.1)"
+
+  CA5365:
+    enforcement: MUST_NOT
+    value: "Do Not Disable HTTP Header Checking"
+
+  CA5366:
+    enforcement: MUST
+    value: "Use XmlReader For DataSet Read Xml"
+
+  CA5367:
+    enforcement: MUST_NOT
+    value: "Do Not Serialize Types With Pointer Fields"
+
+  CA5368:
+    enforcement: MUST
+    value: "Set ViewStateUserKey For Classes Derived From Page"
+
+  CA5369:
+    enforcement: MUST
+    value: "Use XmlReader for Deserialize"
+
+  CA5370:
+    enforcement: MUST
+    value: "Use XmlReader for Validating Reader"
+
+  CA5371:
+    enforcement: MUST
+    value: "Use XmlReader for Schema Read"
+
+  CA5372:
+    enforcement: MUST
+    value: "Use XmlReader for XPathDocument"
+
+  CA5373:
+    enforcement: MUST_NOT
+    value: "Do not use obsolete key derivation function"
+
+  CA5374:
+    enforcement: MUST_NOT
+    value: "Do Not Use XslTransform"
+
+  CA5378:
+    enforcement: MUST_NOT
+    value: "Do not disable ServicePointManagerSecurityProtocols"
+
+  CA5379:
+    enforcement: MUST_NOT
+    value: "Do Not Use Weak Key Derivation Function Algorithm"
+
+  CA5380:
+    enforcement: MUST_NOT
+    value: "Do Not Add Certificates To Root Store"
+
+  CA5382:
+    enforcement: MUST
+    value: "Use Secure Cookies In ASP.NET Core"
+
+  CA5383:
+    enforcement: MUST
+    value: "Ensure Use Secure Cookies In ASP.NET Core"
+
+  CA5384:
+    enforcement: MUST_NOT
+    value: "Do Not Use Digital Signature Algorithm (DSA)"
+
+  CA5385:
+    enforcement: MUST
+    value: "Use Rivest-Shamir-Adleman (RSA) Algorithm With Sufficient Key Size (2048+)"
+
+  CA5386:
+    enforcement: SHOULD_NOT
+    value: "Avoid hardcoding SecurityProtocolType value"
+
+  CA5387:
+    enforcement: MUST_NOT
+    value: "Do Not Use Weak Key Derivation Function With Insufficient Iteration Count"
+
+  CA5388:
+    enforcement: MUST
+    value: "Ensure Sufficient Iteration Count When Using Weak Key Derivation Function"
+
+  CA5389:
+    enforcement: MUST_NOT
+    value: "Do Not Add Archive Item's Path To The Target File System Path (Zip Slip)"
+
+  CA5390:
+    enforcement: MUST_NOT
+    value: "Do not hard-code encryption key"
+
+  CA5391:
+    enforcement: MUST
+    value: "Use antiforgery tokens in ASP.NET Core MVC controllers"
+
+  CA5392:
+    enforcement: SHOULD
+    value: "Use DefaultDllImportSearchPaths attribute for P/Invokes"
+
+  CA5393:
+    enforcement: MUST_NOT
+    value: "Do not use unsafe DllImportSearchPath value"
+
+  CA5394:
+    enforcement: MUST_NOT
+    value: "Do not use insecure randomness"
+    good: |
+      using var rng = RandomNumberGenerator.Create();
+      var bytes = new byte[32];
+      rng.GetBytes(bytes);
+    bad: |
+      var random = new Random();
+      var value = random.Next();  // Not cryptographically secure
+
+  CA5397:
+    enforcement: MUST_NOT
+    value: "Do not use deprecated SslProtocols values"
+
+  CA5398:
+    enforcement: SHOULD_NOT
+    value: "Avoid hardcoded SslProtocols values"
+
+  CA5399:
+    enforcement: MUST
+    value: "HttpClient certificate revocation list check (disable only with justification)"
+
+  CA5400:
+    enforcement: MUST
+    value: "Ensure HttpClient certificate revocation list check is not disabled"
+
+  CA5401:
+    enforcement: MUST_NOT
+    value: "Do not use CreateEncryptor with non-default IV"
+
+  CA5402:
+    enforcement: MUST
+    value: "Use CreateEncryptor with the default IV"
+
+  CA5403:
+    enforcement: MUST_NOT
+    value: "Do not hard-code certificate"
+
+  CA5404:
+    enforcement: MUST_NOT
+    value: "Do not disable token validation checks"
+
+  CA5405:
+    enforcement: MUST_NOT
+    value: "Do not always skip token validation in delegates"
+
+# =============================================================================
+# STYLE RULES (IDE0001-IDE3000)
+# =============================================================================
+
+style:
+  IDE0001:
+    enforcement: SHOULD
+    value: "Simplify name"
+
+  IDE0002:
+    enforcement: SHOULD
+    value: "Simplify member access"
+
+  IDE0003:
+    enforcement: SHOULD
+    value: "Remove this or Me qualification"
+
+  IDE0004:
+    enforcement: SHOULD
+    value: "Remove unnecessary cast"
+    good: |
+      string s = GetString();
+    bad: |
+      string s = (string)GetString();  // Already returns string
+
+  IDE0005:
+    enforcement: SHOULD
+    value: "Remove unnecessary using directives"
+
+  IDE0007:
+    enforcement: SHOULD
+    value: "Use var instead of explicit type (when type is apparent)"
+    good: |
+      var customer = new Customer();
+      var stream = File.OpenRead(path);
+    bad: |
+      Customer customer = new Customer();
+
+  IDE0008:
+    enforcement: SHOULD
+    value: "Use explicit type instead of var (when type is not apparent)"
+
+  IDE0009:
+    enforcement: SHOULD
+    value: "Add this or Me qualification"
+
+  IDE0010:
+    enforcement: SHOULD
+    value: "Add missing cases to switch statement"
+
+  IDE0011:
+    enforcement: SHOULD
+    value: "Add braces"
+    good: |
+      if (condition)
+      {
+          DoSomething();
+      }
+    bad: |
+      if (condition)
+          DoSomething();
+
+  IDE0016:
+    enforcement: SHOULD
+    value: "Use throw expression"
+    good: |
+      _field = value ?? throw new ArgumentNullException(nameof(value));
+    bad: |
+      if (value == null) throw new ArgumentNullException(nameof(value));
+      _field = value;
+
+  IDE0017:
+    enforcement: SHOULD
+    value: "Use object initializers"
+    good: |
+      var person = new Person { Name = "John", Age = 30 };
+    bad: |
+      var person = new Person();
+      person.Name = "John";
+      person.Age = 30;
+
+  IDE0018:
+    enforcement: SHOULD
+    value: "Inline variable declaration"
+    good: |
+      if (int.TryParse(s, out var result)) { }
+    bad: |
+      int result;
+      if (int.TryParse(s, out result)) { }
+
+  IDE0019:
+    enforcement: SHOULD
+    value: "Use pattern matching to avoid as followed by null check"
+    good: |
+      if (obj is string s) { }
+    bad: |
+      var s = obj as string;
+      if (s != null) { }
+
+  IDE0020:
+    enforcement: SHOULD
+    value: "Use pattern matching to avoid is followed by cast"
+    good: |
+      if (obj is string s) { Use(s); }
+    bad: |
+      if (obj is string) { Use((string)obj); }
+
+  IDE0021:
+    enforcement: MAY
+    value: "Use expression body for constructors"
+
+  IDE0022:
+    enforcement: MAY
+    value: "Use expression body for methods"
+
+  IDE0023:
+    enforcement: MAY
+    value: "Use expression body for conversion operators"
+
+  IDE0024:
+    enforcement: MAY
+    value: "Use expression body for operators"
+
+  IDE0025:
+    enforcement: MAY
+    value: "Use expression body for properties"
+
+  IDE0026:
+    enforcement: MAY
+    value: "Use expression body for indexers"
+
+  IDE0027:
+    enforcement: MAY
+    value: "Use expression body for accessors"
+
+  IDE0028:
+    enforcement: SHOULD
+    value: "Use collection initializers"
+    good: |
+      var list = new List<int> { 1, 2, 3 };
+    bad: |
+      var list = new List<int>();
+      list.Add(1);
+      list.Add(2);
+      list.Add(3);
+
+  IDE0029:
+    enforcement: SHOULD
+    value: "Use coalesce expression (non-nullable)"
+    good: |
+      var result = value ?? defaultValue;
+    bad: |
+      var result = value != null ? value : defaultValue;
+
+  IDE0030:
+    enforcement: SHOULD
+    value: "Use coalesce expression (nullable)"
+
+  IDE0031:
+    enforcement: SHOULD
+    value: "Use null propagation"
+    good: |
+      var name = obj?.Name;
+    bad: |
+      var name = obj != null ? obj.Name : null;
+
+  IDE0032:
+    enforcement: SHOULD
+    value: "Use auto-implemented property"
+
+  IDE0033:
+    enforcement: SHOULD
+    value: "Use explicitly provided tuple name"
+
+  IDE0034:
+    enforcement: SHOULD
+    value: "Simplify default expression"
+    good: |
+      int x = default;
+    bad: |
+      int x = default(int);
+
+  IDE0035:
+    enforcement: SHOULD
+    value: "Remove unreachable code"
+
+  IDE0036:
+    enforcement: SHOULD
+    value: "Order modifiers"
+    good: |
+      public static readonly int Value;
+    bad: |
+      static public readonly int Value;
+
+  IDE0037:
+    enforcement: SHOULD
+    value: "Use inferred member name"
+    good: |
+      var tuple = (name, age);
+    bad: |
+      var tuple = (name: name, age: age);
+
+  IDE0038:
+    enforcement: SHOULD
+    value: "Use pattern matching to avoid is followed by cast"
+
+  IDE0039:
+    enforcement: SHOULD
+    value: "Use local function instead of lambda"
+    good: |
+      int Add(int a, int b) => a + b;
+    bad: |
+      Func<int, int, int> add = (a, b) => a + b;
+
+  IDE0040:
+    enforcement: SHOULD
+    value: "Add accessibility modifiers"
+    good: |
+      private int _field;
+      public void Method() { }
+    bad: |
+      int _field;
+      void Method() { }
+
+  IDE0041:
+    enforcement: SHOULD
+    value: "Use is null check"
+    good: |
+      if (value is null) { }
+    bad: |
+      if (value == null) { }
+      if (ReferenceEquals(value, null)) { }
+
+  IDE0042:
+    enforcement: SHOULD
+    value: "Deconstruct variable declaration"
+    good: |
+      var (x, y) = GetPoint();
+    bad: |
+      var point = GetPoint();
+      var x = point.X;
+      var y = point.Y;
+
+  IDE0044:
+    enforcement: SHOULD
+    value: "Add readonly modifier"
+    good: |
+      private readonly int _value = 5;
+    bad: |
+      private int _value = 5;  // Never modified
+
+  IDE0045:
+    enforcement: SHOULD
+    value: "Use conditional expression for assignment"
+    good: |
+      var result = condition ? trueValue : falseValue;
+
+  IDE0046:
+    enforcement: SHOULD
+    value: "Use conditional expression for return"
+
+  IDE0047:
+    enforcement: SHOULD
+    value: "Remove unnecessary parentheses"
+
+  IDE0048:
+    enforcement: SHOULD
+    value: "Add parentheses for clarity"
+
+  IDE0049:
+    enforcement: SHOULD
+    value: "Use language keywords instead of framework type names"
+    good: |
+      int x;
+      string s;
+    bad: |
+      Int32 x;
+      String s;
+
+  IDE0051:
+    enforcement: SHOULD
+    value: "Remove unused private member"
+
+  IDE0052:
+    enforcement: SHOULD
+    value: "Remove unread private member"
+
+  IDE0053:
+    enforcement: SHOULD
+    value: "Use expression body for lambdas"
+
+  IDE0054:
+    enforcement: SHOULD
+    value: "Use compound assignment"
+    good: |
+      x += 5;
+    bad: |
+      x = x + 5;
+
+  IDE0055:
+    enforcement: SHOULD
+    value: "Fix formatting"
+
+  IDE0056:
+    enforcement: SHOULD
+    value: "Use index operator"
+    good: |
+      var last = list[^1];
+    bad: |
+      var last = list[list.Count - 1];
+
+  IDE0057:
+    enforcement: SHOULD
+    value: "Use range operator"
+    good: |
+      var slice = str[1..4];
+    bad: |
+      var slice = str.Substring(1, 3);
+
+  IDE0058:
+    enforcement: MAY
+    value: "Remove unused expression value"
+
+  IDE0059:
+    enforcement: SHOULD
+    value: "Remove unnecessary value assignment"
+
+  IDE0060:
+    enforcement: SHOULD
+    value: "Remove unused parameter"
+
+  IDE0061:
+    enforcement: MAY
+    value: "Use expression body for local functions"
+
+  IDE0062:
+    enforcement: SHOULD
+    value: "Make local function static"
+
+  IDE0063:
+    enforcement: SHOULD
+    value: "Use simple using statement"
+    good: |
+      using var stream = File.OpenRead(path);
+    bad: |
+      using (var stream = File.OpenRead(path))
+      {
+          // ...
+      }
+
+  IDE0064:
+    enforcement: SHOULD
+    value: "Make struct fields writable"
+
+  IDE0065:
+    enforcement: SHOULD
+    value: "using directive placement (outside namespace)"
+
+  IDE0066:
+    enforcement: SHOULD
+    value: "Use switch expression"
+    good: |
+      var result = value switch
+      {
+          1 => "one",
+          2 => "two",
+          _ => "other"
+      };
+
+  IDE0070:
+    enforcement: SHOULD
+    value: "Use System.HashCode.Combine"
+
+  IDE0071:
+    enforcement: SHOULD
+    value: "Simplify interpolation"
+    good: |
+      var s = $"Hello {name}";
+    bad: |
+      var s = $"Hello {name.ToString()}";
+
+  IDE0072:
+    enforcement: SHOULD
+    value: "Add missing cases to switch expression"
+
+  IDE0073:
+    enforcement: SHOULD
+    value: "Require file header"
+
+  IDE0074:
+    enforcement: SHOULD
+    value: "Use compound assignment"
+    good: |
+      x ??= defaultValue;
+    bad: |
+      if (x == null) x = defaultValue;
+
+  IDE0075:
+    enforcement: SHOULD
+    value: "Simplify conditional expression"
+    good: |
+      return condition;
+    bad: |
+      return condition ? true : false;
+
+  IDE0076:
+    enforcement: SHOULD
+    value: "Remove invalid global SuppressMessageAttribute"
+
+  IDE0077:
+    enforcement: SHOULD
+    value: "Avoid legacy format target in global SuppressMessageAttribute"
+
+  IDE0078:
+    enforcement: SHOULD
+    value: "Use pattern matching"
+
+  IDE0079:
+    enforcement: SHOULD
+    value: "Remove unnecessary suppression"
+
+  IDE0080:
+    enforcement: SHOULD
+    value: "Remove unnecessary suppression operator"
+
+  IDE0082:
+    enforcement: SHOULD
+    value: "Convert typeof to nameof"
+    good: |
+      var name = nameof(MyClass);
+    bad: |
+      var name = typeof(MyClass).Name;
+
+  IDE0083:
+    enforcement: SHOULD
+    value: "Use pattern matching (not operator)"
+    good: |
+      if (obj is not null) { }
+    bad: |
+      if (!(obj is null)) { }
+
+  IDE0090:
+    enforcement: SHOULD
+    value: "Simplify new expression"
+    good: |
+      List<int> list = new();
+    bad: |
+      List<int> list = new List<int>();
+
+  IDE0100:
+    enforcement: SHOULD
+    value: "Remove unnecessary equality operator"
+
+  IDE0110:
+    enforcement: SHOULD
+    value: "Remove unnecessary discard"
+
+  IDE0120:
+    enforcement: SHOULD
+    value: "Simplify LINQ expression"
+
+  IDE0130:
+    enforcement: SHOULD
+    value: "Namespace does not match folder structure"
+
+  IDE0150:
+    enforcement: SHOULD
+    value: "Prefer null check over type check"
+    good: |
+      if (obj is not null) { }
+    bad: |
+      if (obj is object) { }
+
+  IDE0160:
+    enforcement: SHOULD
+    value: "Use block-scoped namespace"
+
+  IDE0161:
+    enforcement: SHOULD
+    value: "Use file-scoped namespace"
+    good: |
+      namespace MyNamespace;
+
+      public class MyClass { }
+    bad: |
+      namespace MyNamespace
+      {
+          public class MyClass { }
+      }
+
+  IDE0170:
+    enforcement: SHOULD
+    value: "Simplify property pattern"
+
+  IDE0180:
+    enforcement: SHOULD
+    value: "Use tuple to swap values"
+    good: |
+      (a, b) = (b, a);
+    bad: |
+      var temp = a;
+      a = b;
+      b = temp;
+
+  IDE0200:
+    enforcement: SHOULD
+    value: "Remove unnecessary lambda expression"
+
+  IDE0210:
+    enforcement: MAY
+    value: "Convert to top-level statements"
+
+  IDE0211:
+    enforcement: MAY
+    value: "Convert to Program.Main style program"
+
+  IDE0220:
+    enforcement: SHOULD
+    value: "Add explicit cast in foreach loop"
+
+  IDE0230:
+    enforcement: SHOULD
+    value: "Use UTF-8 string literal"
+    good: |
+      ReadOnlySpan<byte> bytes = "Hello"u8;
+    bad: |
+      byte[] bytes = Encoding.UTF8.GetBytes("Hello");
+
+  IDE0240:
+    enforcement: SHOULD
+    value: "Nullable directive is redundant"
+
+  IDE0241:
+    enforcement: SHOULD
+    value: "Nullable directive is unnecessary"
+
+  IDE0250:
+    enforcement: SHOULD
+    value: "Struct can be made readonly"
+
+  IDE0251:
+    enforcement: SHOULD
+    value: "Member can be made readonly"
+
+  IDE0260:
+    enforcement: SHOULD
+    value: "Use pattern matching"
+
+  IDE0270:
+    enforcement: SHOULD
+    value: "Null check can be simplified"
+
+  IDE0280:
+    enforcement: SHOULD
+    value: "Use nameof"
+
+  IDE0290:
+    enforcement: SHOULD
+    value: "Use primary constructor"
+    good: |
+      public class Person(string name, int age)
+      {
+          public string Name { get; } = name;
+          public int Age { get; } = age;
+      }
+
+  IDE0300:
+    enforcement: SHOULD
+    value: "Use collection expression for array"
+    good: |
+      int[] numbers = [1, 2, 3];
+    bad: |
+      int[] numbers = new int[] { 1, 2, 3 };
+
+  IDE0301:
+    enforcement: SHOULD
+    value: "Use collection expression for empty"
+    good: |
+      int[] empty = [];
+    bad: |
+      int[] empty = Array.Empty<int>();
+
+  IDE0302:
+    enforcement: SHOULD
+    value: "Use collection expression for stackalloc"
+
+  IDE0303:
+    enforcement: SHOULD
+    value: "Use collection expression for Create()"
+
+  IDE0304:
+    enforcement: SHOULD
+    value: "Use collection expression for builder"
+
+  IDE0305:
+    enforcement: SHOULD
+    value: "Use collection expression for fluent"
+
+  IDE1005:
+    enforcement: SHOULD
+    value: "Use conditional delegate call"
+    good: |
+      MyEvent?.Invoke(this, args);
+    bad: |
+      if (MyEvent != null) MyEvent(this, args);
+
+  IDE1006:
+    enforcement: SHOULD
+    value: "Naming rule violation"
+
+# =============================================================================
+# SINGLE FILE DEPLOYMENT RULES (IL3000-IL3005)
+# =============================================================================
+
+single_file:
+  IL3000:
+    enforcement: SHOULD
+    value: "Avoid accessing Assembly file path when publishing as a single file"
+
+  IL3001:
+    enforcement: SHOULD
+    value: "Avoid accessing Assembly file path when publishing as a single-file"
+
+  IL3002:
+    enforcement: SHOULD
+    value: "Avoid calling members annotated with RequiresAssemblyFilesAttribute when publishing as a single file"
+
+  IL3003:
+    enforcement: MUST
+    value: "RequiresAssemblyFilesAttribute annotations must match across all interface implementations or overrides"

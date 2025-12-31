@@ -1,0 +1,427 @@
+# Google Shell Style Guide
+# Source: https://google.github.io/styleguide/shellguide.html
+
+_meta:
+  name: google-shell
+  language: shell
+  tags: [style, google]
+  source: "https://google.github.io/styleguide/shellguide.html"
+
+when_to_use:
+  appropriate:
+    enforcement: SHOULD
+    value:
+      - "Small utilities under 100 lines"
+      - "Simple wrapper scripts"
+      - "Tasks involving file manipulation or command chaining"
+  avoid:
+    enforcement: SHOULD_NOT
+    value:
+      - "Complex logic or data structures"
+      - "Cross-platform portability needs"
+      - "Performance-critical code"
+
+naming:
+  file:
+    enforcement: MUST
+    value: lowercase_with_underscores
+  function:
+    enforcement: MUST
+    value: lowercase_with_underscores
+  variable:
+    enforcement: MUST
+    value: lowercase_with_underscores
+  constant:
+    enforcement: MUST
+    value: UPPER_SNAKE_CASE
+  environment:
+    enforcement: MUST
+    value: UPPER_SNAKE_CASE
+
+  package_functions:
+    enforcement: SHOULD
+    value: "Use :: for namespacing in larger projects"
+    good: |
+      mypackage::my_function() {
+        ...
+      }
+
+  loop_variables:
+    enforcement: SHOULD
+    value: "Match variable name to what it iterates"
+    good: |
+      for zone in "${zones[@]}"; do
+        something_with "${zone}"
+      done
+
+formatting:
+  indentation:
+    enforcement: MUST
+    value: "2 spaces, never tabs"
+
+  max_line_length:
+    enforcement: SHOULD
+    value: 80
+
+  long_strings:
+    enforcement: SHOULD
+    value: "Use here-documents or embedded newlines for long strings"
+    good: |
+      cat <<END
+      This is a long message that would otherwise
+      exceed the line length limit.
+      END
+
+      long_string="This is a long string
+      that spans multiple lines"
+
+  pipelines:
+    enforcement: SHOULD
+    value: "Short pipelines on one line; long pipelines split with pipe at end"
+    good: |
+      # Short - one line
+      command1 | command2 | command3
+
+      # Long - split with pipe at end
+      command1 \
+        | command2 \
+        | command3 \
+        | command4
+
+  control_structures:
+    enforcement: MUST
+    value: "Use standard control structure formatting"
+    good: |
+      # if/then/else
+      if [[ condition ]]; then
+        do_something
+      elif [[ other_condition ]]; then
+        do_other
+      else
+        default_action
+      fi
+
+      # case
+      case "${expression}" in
+        pattern1)
+          action1
+          ;;
+        pattern2)
+          action2
+          ;;
+        *)
+          default_action
+          ;;
+      esac
+
+      # for loop
+      for item in "${items[@]}"; do
+        process "${item}"
+      done
+
+      # while loop
+      while read -r line; do
+        process "${line}"
+      done < "${file}"
+
+file_structure:
+  shebang:
+    enforcement: MUST
+    value: "#!/bin/bash"
+  shebang_note:
+    enforcement: MUST
+    value: "Use bash exclusively. Avoid sh for portability concerns."
+
+  order:
+    enforcement: SHOULD
+    value:
+      - "Shebang"
+      - "File description comment"
+      - "Copyright/license"
+      - "Source statements"
+      - "Constants"
+      - "Functions"
+      - "Main code"
+
+  template:
+    enforcement: SHOULD
+    value: "Follow standard file structure template"
+    good: |
+      #!/bin/bash
+      #
+      # Brief description of the script.
+
+      set -euo pipefail
+
+      # Constants
+      readonly MAX_RETRIES=3
+      readonly DEFAULT_TIMEOUT=30
+
+      # Source dependencies
+      source ./lib/utils.sh
+
+      # Functions
+      my_function() {
+        ...
+      }
+
+      # Main
+      main() {
+        ...
+      }
+
+      main "$@"
+
+functions:
+  declaration:
+    enforcement: SHOULD
+    value: "Function keyword is optional but be consistent"
+    good: |
+      my_function() {
+        local arg1="$1"
+        local arg2="$2"
+        ...
+      }
+
+  documentation:
+    enforcement: SHOULD
+    value: "Document functions with globals, arguments, outputs, and returns"
+    good: |
+      #######################################
+      # Description of the function.
+      # Globals:
+      #   GLOBAL_VAR - read/modified
+      # Arguments:
+      #   $1 - description of first arg
+      #   $2 - description of second arg
+      # Outputs:
+      #   Writes to stdout
+      # Returns:
+      #   0 on success, non-zero on error
+      #######################################
+      my_function() {
+        ...
+      }
+
+  local_variables:
+    enforcement: MUST
+    value: "Always use local for function variables; separate declaration and assignment for command substitution"
+    good: |
+      my_function() {
+        local name="$1"
+        local result
+
+        # Separate declaration and assignment for command substitution
+        # This preserves the exit code
+        local output
+        output="$(some_command)"
+        if [[ $? -ne 0 ]]; then
+          return 1
+        fi
+      }
+
+  main_function:
+    enforcement: MUST
+    value: "Required for scripts with multiple functions"
+    good: |
+      main() {
+        parse_args "$@"
+        validate_environment
+        do_work
+      }
+
+      main "$@"
+
+quoting:
+  always_quote_variables:
+    enforcement: MUST
+    value: "Always quote variables to prevent word splitting and globbing"
+    good: |
+      "${variable}"
+      "$1"
+      "${array[@]}"
+    bad: |
+      $variable
+      $1
+      ${array[@]}
+
+  strings_with_variables:
+    enforcement: SHOULD
+    value: "Quote strings containing variables"
+    good: |
+      echo "Hello, ${name}!"
+      path="${HOME}/.config"
+
+      # OK - literal strings don't need quotes
+      readonly MAX=100
+
+  arrays_for_lists:
+    enforcement: SHOULD
+    value: "Use arrays for safe handling of items with spaces"
+    good: |
+      files=("file one.txt" "file two.txt")
+      for file in "${files[@]}"; do
+        process "${file}"
+      done
+    bad: |
+      files="file one.txt file two.txt"
+
+  prefer_at_over_star:
+    enforcement: SHOULD
+    value: "Use $@ over $* to preserve argument boundaries"
+    good: |
+      process_args() {
+        for arg in "$@"; do
+          echo "${arg}"
+        done
+      }
+    bad: |
+      for arg in "$*"; do
+        ...
+      done
+
+command_substitution:
+  enforcement: MUST
+  value: "Use $() instead of backticks"
+  good: |
+    output="$(command)"
+    result="$(command1 "$(command2)")"
+  bad: |
+    output=`command`
+
+tests:
+  use_double_brackets:
+    enforcement: MUST
+    value: "Use [[ ]] not [ ] for tests"
+    good: |
+      if [[ "${string}" == "value" ]]; then
+        ...
+      fi
+
+      if [[ -n "${var}" ]]; then
+        # var is not empty
+      fi
+
+      if [[ -z "${var}" ]]; then
+        # var is empty
+      fi
+    bad: |
+      if [ "${string}" = "value" ]; then
+        ...
+      fi
+
+  string_comparisons:
+    enforcement: SHOULD
+    value: "Use appropriate string comparison operators"
+    good: |
+      # Exact match
+      [[ "${string}" == "pattern" ]]
+
+      # Pattern matching (glob)
+      [[ "${string}" == pattern* ]]
+
+      # Regex matching
+      [[ "${string}" =~ ^[0-9]+$ ]]
+
+  numeric_comparisons:
+    enforcement: MUST
+    value: "Use (( )) for arithmetic; never use let or expr"
+    good: |
+      if (( num > 10 )); then
+        ...
+      fi
+
+      if (( count == 0 )); then
+        ...
+      fi
+
+      (( num++ ))
+      (( result = 1 + 2 ))
+    bad: |
+      let "num = num + 1"
+      result=$(expr 1 + 2)
+
+error_handling:
+  check_return_values:
+    enforcement: MUST
+    value: "Always check return values of commands"
+    good: |
+      # Using if
+      if ! command; then
+        echo "command failed" >&2
+        return 1
+      fi
+
+      # Using $?
+      command
+      if [[ $? -ne 0 ]]; then
+        echo "command failed" >&2
+        return 1
+      fi
+
+  redirect_to_stderr:
+    enforcement: MUST
+    value: "Redirect error messages to stderr"
+    good: |
+      err() {
+        echo "[ERROR] $*" >&2
+      }
+
+      if ! do_something; then
+        err "Failed to do something"
+        exit 1
+      fi
+
+  set_options:
+    enforcement: SHOULD
+    value: "Use set -euo pipefail at script start"
+    good: |
+      #!/bin/bash
+      set -euo pipefail
+
+      # -e: Exit on error
+      # -u: Error on undefined variables
+      # -o pipefail: Fail pipeline on any error
+
+best_practices:
+  prefer_builtins:
+    enforcement: SHOULD
+    value: "Use shell builtins over external commands when possible"
+    good: |
+      [[ "${string}" == *"pattern"* ]]
+    bad: |
+      echo "${string}" | grep -q "pattern"
+
+  avoid_eval:
+    enforcement: MUST_NOT
+    value: "Never use eval with user input"
+    good: |
+      declare -a args=("${user_input}")
+      command "${args[@]}"
+    bad: |
+      eval "${user_input}"
+
+  functions_over_aliases:
+    enforcement: SHOULD
+    value: "Prefer functions over aliases"
+    good: |
+      ll() {
+        ls -la "$@"
+      }
+    bad: |
+      alias ll='ls -la'
+
+  arrays_for_arguments:
+    enforcement: SHOULD
+    value: "Use arrays to build command arguments"
+    good: |
+      args=(
+        --flag1
+        --flag2="value"
+        "${input_file}"
+      )
+      command "${args[@]}"
+
+  shellcheck:
+    enforcement: SHOULD
+    value: "Run ShellCheck on all scripts"

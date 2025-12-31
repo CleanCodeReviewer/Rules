@@ -1,0 +1,378 @@
+# Google Swift Style Guide
+# Source: https://google.github.io/swift/
+
+_meta:
+  name: google-swift
+  language: swift
+  tags: [style, google]
+  source: "https://google.github.io/swift/"
+
+naming:
+  type:
+    enforcement: MUST
+    value: UpperCamelCase
+  protocol:
+    enforcement: MUST
+    value: UpperCamelCase
+  function:
+    enforcement: MUST
+    value: lowerCamelCase
+  variable:
+    enforcement: MUST
+    value: lowerCamelCase
+  constant:
+    enforcement: MUST
+    value: lowerCamelCase
+  enum_case:
+    enforcement: MUST
+    value: lowerCamelCase
+
+  file_names:
+    enforcement: SHOULD
+    value: "Name files after the primary type they contain"
+    good: |
+      MyType.swift              // Single type
+      MyType+ProtocolName.swift // Extension adding conformance
+
+  initializer_arguments:
+    enforcement: SHOULD
+    value: "Match stored property names"
+    good: |
+      struct User {
+        let name: String
+        let age: Int
+
+        init(name: String, age: Int) {
+          self.name = name
+          self.age = age
+        }
+      }
+
+formatting:
+  max_line_length:
+    enforcement: SHOULD
+    value: 100
+  indentation:
+    enforcement: MUST
+    value: "2 spaces"
+
+  semicolons:
+    enforcement: MUST_NOT
+    value: "Never use semicolons"
+    good: |
+      let x = 5
+      let y = 10
+    bad: |
+      let x = 5; let y = 10
+
+  braces:
+    enforcement: MUST
+    value: "K&R style - no line break before opening brace"
+    good: |
+      if condition {
+        doSomething()
+      } else {
+        doOther()
+      }
+
+      func process() {
+        // Implementation
+      }
+    bad: |
+      if condition
+      {
+        doSomething()
+      }
+
+  one_statement_per_line:
+    enforcement: SHOULD
+    value: "One statement per line, except for single-statement guards"
+    good: |
+      let a = 1
+      let b = 2
+
+      // Exception - single statement blocks
+      guard let x = y else { return }
+
+file_structure:
+  order:
+    enforcement: SHOULD
+    value:
+      - "File comments (optional)"
+      - "Import statements"
+      - "Type/variable/function declarations"
+      - "Extensions"
+
+  example:
+    enforcement: SHOULD
+    value: "Follow standard file structure"
+    good: |
+      import Foundation
+      import UIKit
+
+      public class UserService {
+        // Implementation
+      }
+
+      // MARK: - UserService + Codable
+
+      extension UserService: Codable {
+        // Conformance
+      }
+
+  import_grouping:
+    enforcement: SHOULD
+    value: |
+      1. System/framework imports
+      2. Third-party imports
+      3. Local imports
+    good: |
+      // 1. System/framework imports
+      import Foundation
+      import UIKit
+
+      // 2. Third-party imports
+      import Alamofire
+
+      // 3. Local imports
+      import MyModule
+
+types:
+  use_shorthand:
+    enforcement: SHOULD
+    value: "Use shorthand type syntax for arrays, dictionaries, and optionals"
+    good: |
+      let items: [String]
+      let scores: [String: Int]
+      let name: String?
+    bad: |
+      let items: Array<String>
+      let scores: Dictionary<String, Int>
+      let name: Optional<String>
+
+  void_returns:
+    enforcement: SHOULD
+    value: "Omit Void in function declarations; use Void in function types"
+    good: |
+      func process() {
+        // Implementation
+      }
+
+      let callback: () -> Void
+    bad: |
+      func process() -> Void {
+        // Implementation
+      }
+
+functions:
+  declaration_formatting:
+    enforcement: SHOULD
+    value: "Keep short functions on one line; wrap parameters for long functions"
+    good: |
+      // Short - one line
+      func add(_ a: Int, _ b: Int) -> Int {
+        return a + b
+      }
+
+      // Long - wrap parameters
+      public func index<Elements: Collection, Element>(
+        of element: Element,
+        in collection: Elements
+      ) -> Elements.Index? where Elements.Element == Element {
+        // Implementation
+      }
+
+  trailing_closures:
+    enforcement: SHOULD
+    value: "Use trailing closure syntax only for single closure arguments"
+    good: |
+      items.map { $0.name }
+      items.filter { $0.isActive }
+
+      // Multiple closures - don't use trailing
+      UIView.animate(
+        withDuration: 0.3,
+        animations: { view.alpha = 0 },
+        completion: { _ in view.removeFromSuperview() }
+      )
+
+control_flow:
+  guard_for_early_exit:
+    enforcement: SHOULD
+    value: "Use guard for early exit to avoid pyramid of doom"
+    good: |
+      func process(value: Int?) {
+        guard let value = value else {
+          return
+        }
+        // Use value
+      }
+    bad: |
+      func process(value: Int?) {
+        if let value = value {
+          if value > 0 {
+            if isValid(value) {
+              // Deep nesting
+            }
+          }
+        }
+      }
+
+  pattern_matching:
+    enforcement: SHOULD
+    value: "Place let/var before each element in pattern matching"
+    good: |
+      switch result {
+      case .success(let value):
+        process(value)
+      case .failure(let error):
+        handle(error)
+      }
+    bad: |
+      switch result {
+      case let .success(value):
+        process(value)
+      case let .failure(error):
+        handle(error)
+      }
+
+optionals:
+  avoid_force_unwrap:
+    enforcement: SHOULD_NOT
+    value: "Avoid force unwrapping; use optional binding instead"
+    good: |
+      if let value = optional {
+        use(value)
+      }
+
+      guard let value = optional else {
+        return
+      }
+    bad: |
+      let value = optional!
+
+  avoid_implicitly_unwrapped:
+    enforcement: SHOULD_NOT
+    value: "Avoid implicitly unwrapped optionals except for @IBOutlet and test fixtures"
+    good: |
+      // Allowed
+      @IBOutlet weak var button: UIButton!
+    bad: |
+      var name: String!
+
+error_handling:
+  never_force_try:
+    enforcement: MUST_NOT
+    value: "Never use force-try; use do-catch or try? instead"
+    good: |
+      do {
+        let result = try riskyOperation()
+      } catch {
+        handle(error)
+      }
+
+      // Or with optional
+      let result = try? riskyOperation()
+    bad: |
+      let result = try! riskyOperation()
+
+  custom_error_types:
+    enforcement: SHOULD
+    value: "Define custom error types using enums"
+    good: |
+      enum NetworkError: Error {
+        case noConnection
+        case timeout
+        case invalidResponse(statusCode: Int)
+      }
+
+access_control:
+  omit_when_default:
+    enforcement: SHOULD
+    value: "Omit access control when internal (the default)"
+    good: |
+      // Good - internal is default
+      class MyClass {
+        var name: String
+        func process() { }
+      }
+
+      // Specify when different
+      public class MyPublicClass {
+        private var secret: String
+        public func publicMethod() { }
+      }
+
+documentation:
+  use_triple_slash:
+    enforcement: SHOULD
+    value: "Use /// for documentation comments with Parameters, Returns, Throws sections"
+    good: |
+      /// Returns the sum of two numbers.
+      ///
+      /// - Parameters:
+      ///   - a: The first number.
+      ///   - b: The second number.
+      /// - Returns: The sum of a and b.
+      func add(_ a: Int, _ b: Int) -> Int {
+        return a + b
+      }
+
+  document_public_apis:
+    enforcement: SHOULD
+    value: "Document all public APIs"
+    good: |
+      /// A service for managing user data.
+      ///
+      /// Use this service to create, update, and delete users.
+      public class UserService {
+
+        /// Creates a new user with the given name.
+        ///
+        /// - Parameter name: The user's display name.
+        /// - Returns: The newly created user.
+        /// - Throws: `UserError.invalidName` if name is empty.
+        public func createUser(name: String) throws -> User {
+          // Implementation
+        }
+      }
+
+best_practices:
+  prefer_structs:
+    enforcement: SHOULD
+    value: "Prefer structs over classes for value semantics"
+    good: |
+      // Good - value type
+      struct Point {
+        var x: Double
+        var y: Double
+      }
+
+      // Use class when needed
+      class NetworkManager {
+        // Shared state, identity matters
+      }
+
+  use_extensions_for_organization:
+    enforcement: SHOULD
+    value: "Use extensions to organize protocol conformances"
+    good: |
+      class UserViewController: UIViewController {
+        // Main implementation
+      }
+
+      // MARK: - UITableViewDataSource
+
+      extension UserViewController: UITableViewDataSource {
+        func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+          return items.count
+        }
+      }
+
+      // MARK: - UITableViewDelegate
+
+      extension UserViewController: UITableViewDelegate {
+        func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+          // Handle selection
+        }
+      }
