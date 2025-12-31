@@ -2,6 +2,10 @@
 
 Official rules repository for [Clean Code Reviewer](https://github.com/CleanCodeReviewer/CleanCodeReviewer).
 
+## Disclaimer
+
+CleanCodeReviewer is an independent, open-source tool inspired by widely accepted software engineering principles. It is not affiliated with, endorsed by, or connected to Robert C. Martin or the authors of the book 'Clean Code'.
+
 ## Structure
 
 ```
